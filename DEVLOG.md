@@ -1,5 +1,5 @@
-## Day 1 — YYYY-MM-DD
-Hours worked: X
+## Day 1 — 08/05/2026
+Hours worked: 6
 
 What I did:
 - Researched pricing data

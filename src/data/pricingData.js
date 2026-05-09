@@ -8,9 +8,7 @@ export const pricingData = {
             plus: 21.14,
             pro: 113.22,
             Business: 19.05,
-            Enterprice: {
-                price: "custom",
-            }
+            Enterprice: null,
         }
     },
     claude: {
@@ -34,9 +32,7 @@ export const pricingData = {
             proPlus: 60,
             ultra: 200,
             teams: 40,
-            Enterprice: {
-                price: "custom",
-            }
+            Enterprice: null,
 
         }
     },
@@ -50,16 +46,12 @@ export const pricingData = {
     },
     openai: {
         plans: {
-            GPTmodels: {
-                price: "usage-based",
-            }
+            GPTmodels: null,
         }
     },
     authropicapi: {
         plans: {
-             claudemodels: {
-                price: "usage-based",
-            }
+             claudemodels: null,
         }
     }
 

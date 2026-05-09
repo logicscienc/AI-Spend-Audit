@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { auditEngine } from "../../utils/auditEngine";
+
 import {
   ChevronDown,
   ArrowRight,
@@ -25,19 +26,31 @@ const toolsData = [
       "Pro",
       "Business",
       "Enterprise",
+      "API Direct",
     ],
   },
 
   {
     name: "Claude",
     icon: SiClaude,
-    plans: ["Free", "Pro", "Max"],
+    plans: [
+      "Free",
+      "Pro",
+      "Max",
+      "Team",
+      "Enterprise",
+      "API Direct",
+    ],
   },
 
   {
-    name: "Copilot",
+    name: "GitHub Copilot",
     icon: SiGithubcopilot,
-    plans: ["Free", "Pro", "Pro+"],
+    plans: [
+      "Individual",
+      "Business",
+      "Enterprise",
+    ],
   },
 
   {
@@ -46,9 +59,7 @@ const toolsData = [
     plans: [
       "Hobby",
       "Pro",
-      "Pro+",
-      "Ultra",
-      "Teams",
+      "Business",
       "Enterprise",
     ],
   },
@@ -56,24 +67,42 @@ const toolsData = [
   {
     name: "Gemini",
     icon: SiGooglegemini,
-    plans: ["Free", "AI Plus", "Pro", "Ultra"],
+    plans: [
+      "Pro",
+      "Ultra",
+      "API",
+    ],
   },
 
   {
     name: "OpenAI API",
     icon: SiOpenai,
-    plans: ["GPT Models"],
+    plans: ["API Direct"],
   },
 
   {
     name: "Anthropic API",
     icon: SiClaude,
-    plans: ["Claude Models"],
+    plans: ["API Direct"],
+  },
+
+  {
+    name: "Windsurf",
+    icon: MousePointer2,
+    plans: [
+      "Free",
+      "Pro",
+      "Teams",
+    ],
   },
 ];
 
 export default function HeroRight() {
-  
+
+  // -------------------------
+  // FORM STATES
+  // -------------------------
+
   const [selectedTool, setSelectedTool] =
     useState(toolsData[0]);
 
@@ -83,31 +112,98 @@ export default function HeroRight() {
   const [selectedPlan, setSelectedPlan] =
     useState(toolsData[0].plans[0]);
 
-  const [teamSize, setTeamSize] = useState(25);
+  const [teamSize, setTeamSize] =
+    useState(10);
+
+  const [seats, setSeats] =
+    useState(5);
 
   const [monthlySpend, setMonthlySpend] =
-    useState(2400);
+    useState(500);
 
-    // result states
-    const [auditResult, setAuditResult] = useState(null);
+  const [useCase, setUseCase] =
+    useState("coding");
 
+  // -------------------------
+  // LOCAL STORAGE PERSISTENCE
+  // -------------------------
 
-    const handleSubmit = (e) => {
-        e.preventDefault();
+  useEffect(() => {
+    const savedData =
+      localStorage.getItem("aiSpendForm");
 
-        const userData = {
-    tool: selectedTool.name.toLowerCase(),
-    plan: selectedPlan.toLowerCase(),
-    teamSize: Number(teamSize),
-    monthlySpend: Number(monthlySpend),
-  };
+    if (savedData) {
+      const parsed = JSON.parse(savedData);
 
-  const result = auditEngine(userData);
+      const tool =
+        toolsData.find(
+          (t) => t.name === parsed.selectedTool
+        ) || toolsData[0];
 
-  setAuditResult(result);
+      setSelectedTool(tool);
 
-  console.log(result); 
+      setSelectedPlan(
+        parsed.selectedPlan || tool.plans[0]
+      );
+
+      setTeamSize(parsed.teamSize || 10);
+
+      setSeats(parsed.seats || 5);
+
+      setMonthlySpend(
+        parsed.monthlySpend || 500
+      );
+
+      setUseCase(
+        parsed.useCase || "coding"
+      );
     }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "aiSpendForm",
+      JSON.stringify({
+        selectedTool: selectedTool.name,
+        selectedPlan,
+        teamSize,
+        seats,
+        monthlySpend,
+        useCase,
+      })
+    );
+  }, [
+    selectedTool,
+    selectedPlan,
+    teamSize,
+    seats,
+    monthlySpend,
+    useCase,
+  ]);
+
+  // -------------------------
+  // SUBMIT
+  // -------------------------
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+
+    const userData = {
+      tool: selectedTool.name.toLowerCase(),
+      plan: selectedPlan.toLowerCase(),
+      teamSize: Number(teamSize),
+      seats: Number(seats),
+      monthlySpend: Number(monthlySpend),
+      useCase,
+    };
+
+    const result = auditEngine(userData);
+
+    console.log(result);
+
+    // later:
+    // navigate("/results", { state: result })
+  };
 
   return (
     <div
@@ -124,9 +220,10 @@ export default function HeroRight() {
         shadow-[0_0_60px_rgba(59,130,246,0.08)]
       "
     >
+
       {/* TOP */}
       <div className="flex items-start justify-between mb-8">
-        
+
         <div>
           <h2 className="text-3xl font-semibold tracking-tight">
             AI Spend Analyzer
@@ -139,6 +236,7 @@ export default function HeroRight() {
 
         {/* LIVE */}
         <div className="flex items-center gap-2 mt-1">
+
           <div className="w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_10px_#4ade80]" />
 
           <span className="text-green-400 font-medium">
@@ -148,16 +246,20 @@ export default function HeroRight() {
       </div>
 
       {/* FORM */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        
-        {/* TOOL SELECTION */}
+      <form
+        onSubmit={handleSubmit}
+        className="space-y-6"
+      >
+
+        {/* TOOL */}
         <div>
+
           <label className="block text-sm text-gray-300 mb-3">
             Tool Selection
           </label>
 
           <div className="relative">
-            
+
             {/* SELECTED */}
             <button
               type="button"
@@ -174,7 +276,9 @@ export default function HeroRight() {
                 text-white
               "
             >
+
               <div className="flex items-center gap-3">
+
                 <selectedTool.icon className="text-2xl" />
 
                 <span className="text-lg">
@@ -208,9 +312,11 @@ export default function HeroRight() {
                     type="button"
                     onClick={() => {
                       setSelectedTool(tool);
+
                       setSelectedPlan(
                         tool.plans[0]
                       );
+
                       setDropdownOpen(false);
                     }}
                     className="
@@ -221,6 +327,7 @@ export default function HeroRight() {
                       transition-all
                     "
                   >
+
                     <tool.icon className="text-2xl" />
 
                     <span>{tool.name}</span>
@@ -231,16 +338,18 @@ export default function HeroRight() {
           </div>
         </div>
 
-        {/* PLAN + TEAM SIZE */}
+        {/* PLAN + USE CASE */}
         <div className="grid md:grid-cols-2 gap-5">
-          
+
           {/* PLAN */}
           <div>
+
             <label className="block text-sm text-gray-300 mb-3">
               Current Plan
             </label>
 
             <div className="relative">
+
               <select
                 value={selectedPlan}
                 onChange={(e) =>
@@ -284,8 +393,60 @@ export default function HeroRight() {
             </div>
           </div>
 
+          {/* USE CASE */}
+          <div>
+
+            <label className="block text-sm text-gray-300 mb-3">
+              Primary Use Case
+            </label>
+
+            <select
+              value={useCase}
+              onChange={(e) =>
+                setUseCase(e.target.value)
+              }
+              className="
+                w-full
+                rounded-2xl
+                border border-white/10
+                bg-[#111827]/70
+                px-5 py-4
+                text-lg
+                text-white
+                outline-none
+                focus:border-blue-500
+                transition-all
+              "
+            >
+              <option value="coding">
+                Coding
+              </option>
+
+              <option value="writing">
+                Writing
+              </option>
+
+              <option value="research">
+                Research
+              </option>
+
+              <option value="data">
+                Data
+              </option>
+
+              <option value="mixed">
+                Mixed
+              </option>
+            </select>
+          </div>
+        </div>
+
+        {/* TEAM SIZE + SEATS */}
+        <div className="grid md:grid-cols-2 gap-5">
+
           {/* TEAM SIZE */}
           <div>
+
             <label className="block text-sm text-gray-300 mb-3">
               Team Size
             </label>
@@ -311,12 +472,42 @@ export default function HeroRight() {
               "
             />
           </div>
+
+          {/* SEATS */}
+          <div>
+
+            <label className="block text-sm text-gray-300 mb-3">
+              Seats Using This Tool
+            </label>
+
+            <input
+              type="number"
+              value={seats}
+              onChange={(e) =>
+                setSeats(e.target.value)
+              }
+              placeholder="5"
+              className="
+                w-full
+                rounded-2xl
+                border border-white/10
+                bg-[#111827]/70
+                px-5 py-4
+                text-lg
+                text-white
+                outline-none
+                focus:border-blue-500
+                transition-all
+              "
+            />
+          </div>
         </div>
 
         {/* MONTHLY SPEND */}
         <div>
+
           <label className="block text-sm text-gray-300 mb-3">
-            Monthly Spend (USD)
+            Current Monthly Spend (USD)
           </label>
 
           <input
@@ -360,6 +551,7 @@ export default function HeroRight() {
             shadow-[0_0_35px_rgba(59,130,246,0.35)]
           "
         >
+
           Get My AI Spend Audit
 
           <ArrowRight className="w-6 h-6" />
@@ -367,6 +559,7 @@ export default function HeroRight() {
 
         {/* FOOTER */}
         <div className="flex items-center justify-center gap-2 text-gray-400 text-sm">
+
           <Lock className="w-4 h-4" />
 
           <span>
@@ -374,28 +567,6 @@ export default function HeroRight() {
           </span>
         </div>
       </form>
-
-
-      {auditResult && (
-  <div className="mt-8 rounded-2xl border border-white/10 bg-white/5 p-6">
-    
-    <h3 className="text-2xl font-semibold mb-4">
-      Audit Result
-    </h3>
-
-    <p>
-      Recommendation: {auditResult.recommendation}
-    </p>
-
-    <p>
-      Savings: ${auditResult.savings}
-    </p>
-
-    <p>
-      Reason: {auditResult.reason}
-    </p>
-  </div>
-)}
     </div>
   );
 }

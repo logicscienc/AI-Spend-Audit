@@ -1,4 +1,12 @@
 import React from "react";
+
+import {
+  AreaChart,
+  Area,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
+
 import {
   TrendingDown,
   BadgeDollarSign,
@@ -26,31 +34,31 @@ export default function SavingsCard({
   // -------------------------
 
   const totalMonthlySavings =
-  results.reduce(
-    (acc, item) =>
-      acc +
-      Number(
-        item?.totalMonthlySavings || 0
-      ),
-    0
-  );
+    results.reduce(
+      (acc, item) =>
+        acc +
+        Number(
+          item?.totalMonthlySavings || 0
+        ),
+      0
+    );
 
   // -------------------------
   // YEARLY SAVINGS
   // -------------------------
 
- const yearlySavings =
-  results.reduce(
-    (acc, item) =>
-      acc +
-      Number(
-        item?.totalAnnualSavings || 0
-      ),
-    0
-  );
+  const yearlySavings =
+    results.reduce(
+      (acc, item) =>
+        acc +
+        Number(
+          item?.totalAnnualSavings || 0
+        ),
+      0
+    );
 
   // -------------------------
-  // SAVINGS PERCENTAGE
+  // SAVINGS %
   // -------------------------
 
   const savingsPercentage =
@@ -61,6 +69,47 @@ export default function SavingsCard({
             100
         )
       : 0;
+
+  // -------------------------
+  // GRAPH DATA
+  // -------------------------
+
+  const graphData = [
+    {
+      month: "Jan",
+      optimized:
+        currentMonthlySpend -
+        totalMonthlySavings * 0.72,
+    },
+
+    {
+      month: "Feb",
+      optimized:
+        currentMonthlySpend -
+        totalMonthlySavings * 0.82,
+    },
+
+    {
+      month: "Mar",
+      optimized:
+        currentMonthlySpend -
+        totalMonthlySavings * 0.9,
+    },
+
+    {
+      month: "Apr",
+      optimized:
+        currentMonthlySpend -
+        totalMonthlySavings * 1.02,
+    },
+
+    {
+      month: "May",
+      optimized:
+        currentMonthlySpend -
+        totalMonthlySavings * 1.12,
+    },
+  ];
 
   return (
     <div
@@ -78,6 +127,7 @@ export default function SavingsCard({
       {/* TOP */}
       <div className="flex items-start justify-between">
 
+        {/* LEFT */}
         <div>
 
           <p className="text-white/60 text-sm mb-3">
@@ -123,55 +173,115 @@ export default function SavingsCard({
         </div>
       </div>
 
-      {/* PERCENTAGE */}
-      <div
-        className="
-          mt-8
-          rounded-2xl
-          border border-white/10
-          bg-white/[0.03]
-          px-5 py-4
-        "
-      >
+      {/* BOTTOM SECTION */}
+      <div className="mt-8 flex items-center justify-between gap-6">
 
-        <div className="flex items-center gap-3">
-
-          <TrendingDown
-            size={18}
-            className="text-green-400"
-          />
-
-          <p className="text-white/80">
-
-            <span className="text-green-400 font-semibold">
-              {savingsPercentage}%
-            </span>
-
-            {" "}of your current AI spend
-            can potentially be optimized
-          </p>
-        </div>
-      </div>
-
-      {/* OPPORTUNITY */}
-      <div className="mt-6">
-
+        {/* LEFT TEXT */}
         <div
           className="
-            inline-flex
-            items-center gap-2
-            rounded-full
-            border border-green-500/20
-            bg-green-500/10
-            px-4 py-2
+            flex-1
+            rounded-2xl
+            border border-white/10
+            bg-white/[0.03]
+            px-5 py-4
           "
         >
 
-          <div className="w-2 h-2 rounded-full bg-green-400" />
+          <div className="flex items-center gap-3">
 
-          <span className="text-sm text-green-300 font-medium">
-            Excellent Opportunity
-          </span>
+            <TrendingDown
+              size={18}
+              className="text-green-400"
+            />
+
+            <p className="text-white/80 leading-relaxed">
+
+              <span className="text-green-400 font-semibold">
+                {savingsPercentage}%
+              </span>
+
+              {" "}of your current AI spend
+              can potentially be optimized
+            </p>
+          </div>
+
+          {/* OPPORTUNITY */}
+          <div className="mt-5">
+
+            <div
+              className="
+                inline-flex
+                items-center gap-2
+                rounded-full
+                border border-green-500/20
+                bg-green-500/10
+                px-4 py-2
+              "
+            >
+
+              <div className="w-2 h-2 rounded-full bg-green-400" />
+
+              <span className="text-sm text-green-300 font-medium">
+                Excellent Opportunity
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {/* GRAPH */}
+        <div className="w-[210px] h-[140px] shrink-0">
+
+          <ResponsiveContainer
+            width="100%"
+            height="100%"
+          >
+
+            <AreaChart data={graphData}>
+
+              <defs>
+
+                <linearGradient
+                  id="greenGlow"
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+
+                  <stop
+                    offset="0%"
+                    stopColor="#22c55e"
+                    stopOpacity={0.45}
+                  />
+
+                  <stop
+                    offset="100%"
+                    stopColor="#22c55e"
+                    stopOpacity={0}
+                  />
+                </linearGradient>
+              </defs>
+
+              <Tooltip
+                contentStyle={{
+                  background:
+                    "#071120",
+                  border:
+                    "1px solid rgba(255,255,255,0.08)",
+                  borderRadius:
+                    "14px",
+                }}
+              />
+
+              <Area
+                type="natural"
+                dataKey="optimized"
+                stroke="#22c55e"
+                fill="url(#greenGlow)"
+                strokeWidth={3.5}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
         </div>
       </div>
 

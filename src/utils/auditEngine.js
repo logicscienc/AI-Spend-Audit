@@ -1,5 +1,6 @@
 import React from 'react'
 import { pricingData } from '../data/pricingData'
+import { buildAuditResult } from './buildAuditResult'
 
 
 
@@ -13,13 +14,9 @@ export function auditEngine(userData)
 //      useCase: "coding"
 //    }
 
-     const results = []
-
-  
-    const toolResult = evaluateTool(userData)
-  
-
-  results.push(toolResult)
+    const results = userData.map((tool) =>
+  evaluateTool(tool)
+);
 
   const totalMonthlySavings = results.reduce(
     (sum, item) => sum + (item.monthlySavings || 0),
@@ -40,19 +37,31 @@ function getPrice(tool, plan)
 
 
 function evaluateTool(userData) {
-  const { tool, plan, seats = 1, useCase } = userData
-  const currentPrice = getPrice(tool, plan)
+   const {
+    tool,
+    plan,
+    seats = 1,
+    useCase,
+    monthlySpend = 0,
+  } = userData;
 
-  if (!currentPrice) {
+  const currentPrice = getPrice(tool, plan);
+
+  // IMPORTANT FIX
+  if (currentPrice === null) {
     return {
       tool,
       recommendation: "Manual review needed",
       monthlySavings: 0,
-      reason: "Pricing unavailable"
-    }
+      annualSavings: 0,
+      reason: "Pricing unavailable",
+    };
   }
 
-  const currentCost = currentPrice * seats
+  const currentCost =
+    currentPrice === "usage-based"
+      ? monthlySpend
+      : currentPrice * seats;
 
   // BUSINESS RULES
 
@@ -63,18 +72,27 @@ function evaluateTool(userData) {
 
     const savings = currentPrice - optimizedCost
 
-    return {
-      tool,
-      currentCost,
-      optimizedCost,
-      monthlySavings: savings,
-      annualSavings: savings * 12,
+   return buildAuditResult({
+  tool,
+  plan,
 
-      recommendation: "Downgrade to ChatGPT Go",
+  currentCost,
 
-      reason:
-        "Solo users with standard usage often do not fully utilize Plus limits."
-    }
+  optimizedCost,
+
+  monthlySavings: savings,
+
+  annualSavings: savings * 12,
+
+  recommendation: "Downgrade to ChatGPT Go",
+
+  reason:
+    "Solo users with standard usage often do not fully utilize Plus limits.",
+
+  seats,
+
+  useCase,
+});
   }
 
 //  Rule 2 -> Teams on free plans with 3 or more seats
@@ -83,8 +101,9 @@ function evaluateTool(userData) {
      const upgradedPlanPrice = getPrice("chatgpt", "business") * seats
 
      
-     return {
+     return buildAuditResult({
       tool,
+      plan,
         currentCost: 0,
 
     optimizedCost: upgradedPlanPrice,
@@ -96,8 +115,11 @@ function evaluateTool(userData) {
     recommendation: "Upgrade to ChatGPT Business",
 
        reason:
-       "Teams collaborating on free plans often face message limits and workflow inefficiencies."
-     }
+       "Teams collaborating on free plans often face message limits and workflow inefficiencies.",
+
+       seats,
+       useCase,
+     });
   }
 
   // Rule 3 -> chatgpt pro overkill for solo users
@@ -107,8 +129,9 @@ function evaluateTool(userData) {
 
          const savings = currentPrice - optimizedCost   
 
-        return {
+        return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -118,8 +141,10 @@ function evaluateTool(userData) {
     recommendation: "Downgrade to ChatGPT Plus",
 
     reason:
-      "ChatGPT Pro is typically optimized for heavy daily power users. Most solo users can achieve similar productivity with Plus."
-  } 
+      "ChatGPT Pro is typically optimized for heavy daily power users. Most solo users can achieve similar productivity with Plus.",
+      seats,
+      useCase,
+  } );
   }
 
   // Rule 4 -> Business plan unnecessary for tiny team
@@ -129,8 +154,9 @@ function evaluateTool(userData) {
 
   const savings = currentCost - optimizedCost
 
-   return {
+   return buildAuditResult({
      tool,
+     plan,
     currentCost,
     optimizedCost,
 
@@ -138,16 +164,19 @@ function evaluateTool(userData) {
     annualSavings: savings * 12,
     recommendation: "Switch to ChatGPT Plus",
 
-    reason: "Business plan features may be underutilized by very small teams, leading to unnecessary costs."
-   }
+    reason: "Business plan features may be underutilized by very small teams, leading to unnecessary costs.",
+    seats,
+    useCase,
+   });
   }
 
   // Rule 5 -> Multiple Plus accounts should consolidate
 
   if (tool === "chatgpt" && plan === "plus" && seats >= 5) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -158,10 +187,12 @@ function evaluateTool(userData) {
      recommendation: "Evaluate ChatGPT Business",
 
 
-     reason: "Multiple Plus accounts can lead to fragmented billing and management. Consolidating under a Business plan may offer better cost efficiency and team collabloration features."
+     reason: "Multiple Plus accounts can lead to fragmented billing and management. Consolidating under a Business plan may offer better cost efficiency and team collabloration features.",
+     seats,
+     useCase,
 
 
-  }
+  });
 }
 
 // Rule 6-> ChatGPT for coding team may overlap with Cursor/Copilot
@@ -173,8 +204,9 @@ if (
   seats >= 3
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -184,8 +216,10 @@ if (
     recommendation: "Review overlap with coding assistants",
 
     reason:
-      "Teams already paying for Cursor or GitHub Copilot may be duplicating coding-assistant spend with ChatGPT subscriptions."
-  }
+      "Teams already paying for Cursor or GitHub Copilot may be duplicating coding-assistant spend with ChatGPT subscriptions.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 7 — Free plan inefficient for research-heavy teams
@@ -195,8 +229,9 @@ if (
   seats >= 4
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
 
     currentCost: 0,
 
@@ -210,8 +245,10 @@ if (
     recommendation: "Upgrade to ChatGPT Business",
 
     reason:
-      "Teams relying heavily on AI research workflows may face productivity bottlenecks on free-tier usage limits."
-  }
+      "Teams relying heavily on AI research workflows may face productivity bottlenecks on free-tier usage limits.",
+      seats,
+      useCase,
+  });
 }
 
 
@@ -223,16 +260,19 @@ if(tool === "claude" && plan === "pro" && seats === 1)
 
     const savings = currentPrice - optimizedCost
 
-    return {
+    return buildAuditResult({
       tool,
+      plan,
       currentCost,
       optimizedCost,
       monthlySavings: savings,
       annualSavings: savings * 12,
 
       recommendation: "Downgrade to Claude Free",
-      reason: "Solo users with casual usage may not need the advanced features of the Pro plan, making the Free plan a more cost effective choice."
-    }
+      reason: "Solo users with casual usage may not need the advanced features of the Pro plan, making the Free plan a more cost effective choice.",
+      seats,
+      useCase,
+    });
 }
 
 // Rule 2-> Teams on free plans with 3 or more seats may benefit from upgrading to Pro for better collaboration features and higher limits
@@ -240,8 +280,9 @@ if(tool === "claude" && plan === "free" && seats >= 3)
 {
    const optimizedCost = getPrice("claude", "pro")* seats
 
-   return {
+   return buildAuditResult({
      tool,
+     plan,
       currentCost,
       optimizedCost,
        monthlySavings: 0,
@@ -250,8 +291,10 @@ if(tool === "claude" && plan === "free" && seats >= 3)
 
       recommendation: "Upgrade to Claude Pro",
 
-      reason: "Teams collaborating on free plans often face message limits and workflow inefficiencies. Upgrading to pro can provide enhanced collabpration features and higher usage limits, imporving team productivity and cost efficiency."
-   }
+      reason: "Teams collaborating on free plans often face message limits and workflow inefficiencies. Upgrading to pro can provide enhanced collabpration features and higher usage limits, imporving team productivity and cost efficiency.",
+      seats,
+      useCase,
+   });
 }
 
 // Rule 3 -> Max plan may be overkill for solo users
@@ -261,16 +304,19 @@ if(tool === "claude" && plan === "max" && seats === 1)
 
     const savings = currentPrice - optimizedCost
 
-    return {
+    return buildAuditResult({
       tool,
+      plan,
       currentCost,
       optimizedCost,
       monthlySavings: savings,
       annualSavings: savings * 12,
 
       recommendation: "Downgrade to Claude Pro",
-      reason: "Solo users with casual usage may not need the advanced features of the Max plan, making the Pro plan a more cost effective choice."
-    }
+      reason: "Solo users with casual usage may not need the advanced features of the Max plan, making the Pro plan a more cost effective choice.",
+      seats,
+      useCase,
+    });
 }
 
 // Rule 4 -> Claude Max unnecessary for writing-only teams
@@ -283,8 +329,9 @@ if(tool === "claude" && plan === "max" &&  useCase === "writing" &&
 
   const savings = currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -294,8 +341,10 @@ if(tool === "claude" && plan === "max" &&  useCase === "writing" &&
     recommendation: "Downgrade to Claude Pro",
 
     reason:
-      "Writing-focused teams often do not require the higher limits and premium capabilities included in Claude Max."
-  }
+      "Writing-focused teams often do not require the higher limits and premium capabilities included in Claude Max.",
+      seats,
+      useCase,
+  });
   }
 
   // Rule 5 -> Multiple Claude Pro seats may justify Team plan
@@ -305,8 +354,9 @@ if(tool === "claude" && plan === "max" &&  useCase === "writing" &&
   seats >= 5
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -316,8 +366,10 @@ if(tool === "claude" && plan === "max" &&  useCase === "writing" &&
     recommendation: "Evaluate Claude Team plan",
 
     reason:
-      "Larger teams using separate Pro subscriptions may benefit from centralized billing and collaboration features in Claude Team."
-  }
+      "Larger teams using separate Pro subscriptions may benefit from centralized billing and collaboration features in Claude Team.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 6-> Claude + ChatGPT overlap
@@ -329,8 +381,9 @@ if (
   seats >= 3
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -340,8 +393,10 @@ if (
     recommendation: "Review overlap with ChatGPT subscriptions",
 
     reason:
-      "Teams using multiple general-purpose AI assistants may be duplicating spend across similar workflows."
-  }
+      "Teams using multiple general-purpose AI assistants may be duplicating spend across similar workflows.",
+      seats,
+      useCase,
+  });
 }
 
 // GitHub Copilot rules
@@ -352,8 +407,9 @@ if(tool === "copilot" && plan === "pro" && seats === 1)
 
     const savings = currentPrice - optimizedCost
 
-    return {
+    return buildAuditResult({
        tool,
+       plan,
       currentCost,
       optimizedCost,
       monthlySavings: savings,
@@ -361,8 +417,10 @@ if(tool === "copilot" && plan === "pro" && seats === 1)
 
       recommendation: "Downgrade to Copilot Free",
 
-      reason: "Beginners or light users may not need the advanced features of the Pro plan, making the Free plan a more cost effective choice."
-    }
+      reason: "Beginners or light users may not need the advanced features of the Pro plan, making the Free plan a more cost effective choice.",
+      seats,
+      useCase,
+    });
 }
 
 // Rule 2 -> Larger teams on Pro may benefit from Business for centralized management and security controls
@@ -373,8 +431,9 @@ if (
   seats >= 10
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -384,20 +443,23 @@ if (
     recommendation: "Evaluate Copilot Pro Plus",
 
     reason:
-      "Larger engineering teams may benefit from centralized policy management, security controls, and billing provided by Copilot Pro Plus."
-  }
+      "Larger engineering teams may benefit from centralized policy management, security controls, and billing provided by Copilot Pro Plus.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 3-> pro plus may be overkill for most users
 
-if(tool === "copilot" && plan === "proPlus" && seats === 1)
+if(tool === "copilot" && plan === "proplus" && seats === 1)
 {
   const optimizedCost = getPrice("copilot", "pro")
 
   const savings = currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
      tool,
+      plan,
       currentCost,
       optimizedCost,
       monthlySavings: savings,
@@ -405,9 +467,11 @@ if(tool === "copilot" && plan === "proPlus" && seats === 1)
 
       recommendation: "Downgrade to Copilot Pro",
 
-      reason: "Most users do not required the advanced features of Pro Plus, making the Pro plan a more cost effective choice for the majority of users."
+      reason: "Most users do not required the advanced features of Pro Plus, making the Pro plan a more cost effective choice for the majority of users.",
+      seats,
+      useCase,
 
-  }
+  });
 }
 
 // Rule 4 -> Copilot overlap with Cursor
@@ -418,8 +482,9 @@ if (
   seats >= 3
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -429,14 +494,16 @@ if (
     recommendation: "Review overlap with Cursor subscriptions",
 
     reason:
-      "Teams using both Copilot and Cursor may be duplicating spend across similar AI coding workflows."
-  }
+      "Teams using both Copilot and Cursor may be duplicating spend across similar AI coding workflows.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 5 -> Small teams on Pro plus may overpay
 if (
   tool === "copilot" &&
-  plan === "proPlus" &&
+  plan === "proplus" &&
   seats <= 2
 ) {
 
@@ -446,8 +513,9 @@ if (
   const savings =
     currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -457,15 +525,17 @@ if (
     recommendation: "Switch to Copilot Pro",
 
     reason:
-      "Business-tier management features may be unnecessary for very small engineering teams."
-  }
+      "Business-tier management features may be unnecessary for very small engineering teams.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 6 -> Pro Plus unnecessary for non-power users
 
 if (
   tool === "copilot" &&
-  plan === "proPlus" &&
+  plan === "proplus" &&
   useCase !== "coding"
 ) {
 
@@ -475,8 +545,9 @@ if (
   const savings =
     currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -486,8 +557,10 @@ if (
     recommendation: "Downgrade to Copilot Pro",
 
     reason:
-      "Advanced Copilot tiers are typically optimized for heavy coding workflows and may be unnecessary for non-engineering use cases."
-  }
+      "Advanced Copilot tiers are typically optimized for heavy coding workflows and may be unnecessary for non-engineering use cases.",
+      seats,
+      useCase,
+  });
 }
 
 
@@ -500,8 +573,9 @@ if(tool === "cursor" && plan === "pro" && seats === 1)
 
    const savings = currentPrice - optimizedCost
 
-   return {
+   return buildAuditResult({
      tool,
+     plan,
     currentCost,
     optimizedCost,
 
@@ -510,14 +584,16 @@ if(tool === "cursor" && plan === "pro" && seats === 1)
 
     recommendation: "Downgrade to Cursor Hobby",
 
-    reason: "Solo users with light usage may not need the advanced features of the Pro plan, making the Hobby plan a more cost effective choice."
+    reason: "Solo users with light usage may not need the advanced features of the Pro plan, making the Hobby plan a more cost effective choice.",
+    seats,
+    useCase,
 
-   }
+   });
 }
 // Rule 2 -> Pro Plus may be excessive for solo users
 if (
   tool === "cursor" &&
-  plan === "proPlus" &&
+  plan === "proplus" &&
   seats === 1
 ) {
 
@@ -527,8 +603,9 @@ if (
   const savings =
     currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -538,8 +615,10 @@ if (
     recommendation: "Downgrade to Cursor Pro",
 
     reason:
-      "Most solo developers can achieve similar productivity using Cursor Pro instead of Pro Plus."
-  }
+      "Most solo developers can achieve similar productivity using Cursor Pro instead of Pro Plus.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 3 -> Ultra unnecessary for small teams
@@ -550,13 +629,14 @@ if (
 ) {
 
   const optimizedCost =
-    getPrice("cursor", "proPlus") * seats
+    getPrice("cursor", "proplus") * seats
 
   const savings =
     currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -566,8 +646,10 @@ if (
     recommendation: "Switch to Cursor Pro Plus",
 
     reason:
-      "Ultra-tier plans are generally optimized for high-scale engineering workflows and may be excessive for smaller teams."
-  }
+      "Ultra-tier plans are generally optimized for high-scale engineering workflows and may be excessive for smaller teams.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 4 -> Teams plan unnecessary for tiny teams
@@ -583,8 +665,9 @@ if (
   const savings =
     currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -594,8 +677,10 @@ if (
     recommendation: "Use individual Cursor Pro accounts",
 
     reason:
-      "Team-management functionality may not provide enough value for very small teams."
-  }
+      "Team-management functionality may not provide enough value for very small teams.",
+      seats,
+      useCase,
+  });
 }
 
 
@@ -606,8 +691,9 @@ if (
   seats >= 8
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -617,8 +703,10 @@ if (
     recommendation: "Evaluate Cursor Teams",
 
     reason:
-      "Larger engineering teams may benefit from centralized billing, collaboration, and management features."
-  }
+      "Larger engineering teams may benefit from centralized billing, collaboration, and management features.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 6 -> Cursor overlap with GitHub Copilot
@@ -628,8 +716,9 @@ if (
   seats >= 3
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -639,8 +728,10 @@ if (
     recommendation: "Review overlap with GitHub Copilot",
 
     reason:
-      "Organizations using both Cursor and GitHub Copilot may be duplicating AI coding assistant spend."
-  }
+      "Organizations using both Cursor and GitHub Copilot may be duplicating AI coding assistant spend.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 7 -> Cursor plans may be inefficient for non-coding workflows
@@ -649,8 +740,9 @@ if (
   useCase !== "coding"
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -660,8 +752,10 @@ if (
     recommendation: "Evaluate non-coding AI tools",
 
     reason:
-      "Cursor is primarily optimized for software engineering workflows and may not be ideal for non-coding use cases."
-  }
+      "Cursor is primarily optimized for software engineering workflows and may not be ideal for non-coding use cases.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 8 -> Enterprise may be unnecessary for mid-size teams
@@ -671,8 +765,9 @@ if (
   seats < 20
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -682,26 +777,29 @@ if (
     recommendation: "Evaluate Cursor Teams instead",
 
     reason:
-      "Enterprise-grade controls and compliance features may be unnecessary for smaller engineering organizations."
-  }
+      "Enterprise-grade controls and compliance features may be unnecessary for smaller engineering organizations.",
+      seats,
+      useCase,
+  });
 }
 
 // Google Gemini rules
 // Rule 1 -> Solo users on AI Pro may only need AI Plus
 if (
   tool === "gemini" &&
-  plan === "aiPro" &&
+  plan === "aipro" &&
   seats === 1
 ) {
 
   const optimizedCost =
-    getPrice("gemini", "aiPlus")
+    getPrice("gemini", "aiplus")
 
   const savings =
     currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -711,25 +809,28 @@ if (
     recommendation: "Downgrade to Gemini AI Plus",
 
     reason:
-      "Most solo users can handle everyday AI workflows without requiring the higher limits of Gemini AI Pro."
-  }
+      "Most solo users can handle everyday AI workflows without requiring the higher limits of Gemini AI Pro.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 2 -> AI Ultra may be excessive for small teams
 if (
   tool === "gemini" &&
-  plan === "aiUltra" &&
+  plan === "aiultra" &&
   seats <= 2
 ) {
 
   const optimizedCost =
-    getPrice("gemini", "aiPro") * seats
+    getPrice("gemini", "aipro") * seats
 
   const savings =
     currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -739,8 +840,10 @@ if (
     recommendation: "Switch to Gemini AI Pro",
 
     reason:
-      "Gemini AI Ultra is optimized for advanced heavy-usage workflows and may be unnecessary for smaller teams."
-  }
+      "Gemini AI Ultra is optimized for advanced heavy-usage workflows and may be unnecessary for smaller teams.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 3 -> Free plan may limit productivity for growing teams
@@ -751,10 +854,11 @@ if (
 ) {
 
   const optimizedCost =
-    getPrice("gemini", "aiPlus") * seats
+    getPrice("gemini", "aiplus") * seats
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost: 0,
     optimizedCost,
 
@@ -764,26 +868,29 @@ if (
     recommendation: "Upgrade to Gemini AI Plus",
 
     reason:
-      "Teams collaborating on free-tier plans may face usage limits and inconsistent workflow performance."
-  }
+      "Teams collaborating on free-tier plans may face usage limits and inconsistent workflow performance.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 4 -> AI Pro unnecessary for writing-focused solo users
 if (
   tool === "gemini" &&
-  plan === "aiPro" &&
+  plan === "aipro" &&
   useCase === "writing" &&
   seats === 1
 ) {
 
   const optimizedCost =
-    getPrice("gemini", "aiPlus")
+    getPrice("gemini", "aiplus")
 
   const savings =
     currentCost - optimizedCost
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost,
 
@@ -793,19 +900,22 @@ if (
     recommendation: "Downgrade to Gemini AI Plus",
 
     reason:
-      "Writing-focused workflows often do not require the advanced limits and premium capabilities of Gemini AI Pro."
-  }
+      "Writing-focused workflows often do not require the advanced limits and premium capabilities of Gemini AI Pro.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 5 -> Multiple AI Plus subscriptions may justify AI Pro
 if (
   tool === "gemini" &&
-  plan === "aiPlus" &&
+  plan === "aiplus" &&
   seats >= 6
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -815,8 +925,10 @@ if (
     recommendation: "Evaluate Gemini AI Pro",
 
     reason:
-      "Larger teams may benefit from higher limits and better workflow scalability available in Gemini AI Pro."
-  }
+      "Larger teams may benefit from higher limits and better workflow scalability available in Gemini AI Pro.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 6 -> Gemini overlap with ChatGPT or Claude
@@ -826,8 +938,9 @@ if (
   seats >= 3
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -837,8 +950,10 @@ if (
     recommendation: "Review overlap with other AI assistants",
 
     reason:
-      "Teams using Gemini alongside ChatGPT or Claude may be duplicating spend across similar general-purpose AI workflows."
-  }
+      "Teams using Gemini alongside ChatGPT or Claude may be duplicating spend across similar general-purpose AI workflows.",
+      seats,
+      useCase,
+  });
 }
 
 // OpenAI API rules
@@ -850,8 +965,9 @@ if (
   useCase === "mixed"
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -861,8 +977,10 @@ if (
     recommendation: "Review overlap with ChatGPT subscriptions",
 
     reason:
-      "Small teams may be duplicating spend across both OpenAI API usage and ChatGPT subscriptions."
-  }
+      "Small teams may be duplicating spend across both OpenAI API usage and ChatGPT subscriptions.",
+      seats,
+      useCase,
+  });
 }
 
 
@@ -873,8 +991,9 @@ if (
   useCase === "writing"
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost * 0.8,
 
@@ -884,8 +1003,10 @@ if (
     recommendation: "Evaluate lighter OpenAI models",
 
     reason:
-      "Writing-focused workflows may not require premium reasoning models for every request."
-  }
+      "Writing-focused workflows may not require premium reasoning models for every request.",
+      seats,
+      useCase,
+  });
 }
 
 // Rule 3 -> Large API spend should consider credits or volume discounts
@@ -895,8 +1016,9 @@ if (
   currentCost >= 500
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost * 0.75,
 
@@ -906,8 +1028,10 @@ if (
     recommendation: "Explore discounted infrastructure credits",
 
     reason:
-      "Organizations with high API spend may reduce costs through committed usage discounts or infrastructure credits."
-  }
+      "Organizations with high API spend may reduce costs through committed usage discounts or infrastructure credits.",
+      seats,
+      useCase,
+  });
 }
 
 // Anthropic API Rules
@@ -919,8 +1043,9 @@ if (
   seats <= 3
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost,
 
@@ -930,8 +1055,10 @@ if (
     recommendation: "Review overlap with Claude subscriptions",
 
     reason:
-      "Teams using both Claude subscriptions and Anthropic API access may be duplicating AI spend."
-  }
+      "Teams using both Claude subscriptions and Anthropic API access may be duplicating AI spend.",
+      seats,
+      useCase,
+  });
 }
 
 
@@ -942,8 +1069,9 @@ if (
   useCase === "writing"
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost * 0.8,
 
@@ -953,8 +1081,10 @@ if (
     recommendation: "Evaluate lighter Claude models",
 
     reason:
-      "Writing-focused workloads may not require premium reasoning models for every API request."
-  }
+      "Writing-focused workloads may not require premium reasoning models for every API request.",
+      seats,
+      useCase,
+  });
 }
 
 
@@ -965,8 +1095,9 @@ if (
   currentCost >= 500
 ) {
 
-  return {
+  return buildAuditResult({
     tool,
+    plan,
     currentCost,
     optimizedCost: currentCost * 0.75,
 
@@ -976,8 +1107,10 @@ if (
     recommendation: "Explore infrastructure credit programs",
 
     reason:
-      "High-volume API users may significantly reduce costs through committed usage discounts and infrastructure credits."
-  }
+      "High-volume API users may significantly reduce costs through committed usage discounts and infrastructure credits.",
+      seats,
+      useCase,
+  });
 }
 
 
@@ -985,15 +1118,24 @@ if (
 
 
   // fallback
-  return {
-    tool,
-    currentCost,
-    optimizedCost: currentCost,
-    monthlySavings: 0,
-    annualSavings: 0,
+ return buildAuditResult({
+  tool,
+  plan,
 
-    recommendation: "Current plan looks efficient",
+  currentCost,
 
-    reason: "No strong optimization opportunity detected."
-  }
-}
+  optimizedCost: currentCost,
+
+  monthlySavings: 0,
+
+  annualSavings: 0,
+
+  recommendation: "Current plan looks efficient",
+
+  reason: "No strong optimization opportunity detected.",
+
+  seats,
+
+  useCase,
+});
+} 

@@ -29,7 +29,6 @@ const toolsData = [
       "Pro",
       "Business",
       "Enterprise",
-      "API Direct",
     ],
   },
 
@@ -40,19 +39,16 @@ const toolsData = [
       "Free",
       "Pro",
       "Max",
-      "Team",
-      "Enterprise",
-      "API Direct",
     ],
   },
 
   {
-    name: "copilot",
+    name: "Copilot",
     icon: SiGithubcopilot,
     plans: [
       "Free",
       "Pro",
-      "proPlus",
+      "ProPlus",
     ],
   },
 
@@ -62,7 +58,7 @@ const toolsData = [
     plans: [
       "Hobby",
       "Pro",
-      "proPlus",
+      "ProPlus",
       "Ultra",
       "Teams",
       "Enterprise",
@@ -74,20 +70,20 @@ const toolsData = [
     icon: SiGooglegemini,
     plans: [
       "Free",
-      "aiPlus",
-      "aiPro",
-      "aiUltra",
+      "AIPlus",
+      "AIPro",
+      "AIUltra",
     ],
   },
 
   {
-    name: "openai",
+    name: "OpenAI API",
     icon: SiOpenai,
     plans: ["API Direct"],
   },
 
   {
-    name: "authropicapi",
+    name: "Anthropic API",
     icon: SiClaude,
     plans: ["API Direct"],
   },
@@ -305,13 +301,20 @@ export default function HeroRight() {
             "Valid team size required";
         }
 
-        if (
-          !entry.seats ||
-          Number(entry.seats) <= 0
-        ) {
-          errors.seats =
-            "Valid seats required";
-        }
+       const isApiTool =
+  entry.tool === "OpenAI API" ||
+  entry.tool === "Anthropic API";
+
+if (
+  !isApiTool &&
+  (
+    !entry.seats ||
+    Number(entry.seats) <= 0
+  )
+) {
+  errors.seats =
+    "Valid seats required";
+}
 
         if (
           !entry.monthlySpend ||
@@ -370,6 +373,29 @@ export default function HeroRight() {
 
   }, [toolEntries]);
 
+  function normalizeTool(tool) {
+
+  const map = {
+    "ChatGPT": "chatgpt",
+    "Claude": "claude",
+    "Copilot": "copilot",
+    "Cursor": "cursor",
+    "Gemini": "gemini",
+    "OpenAI API": "openai",
+    "Anthropic API": "anthropicapi",
+    "Windsurf": "windsurf",
+  };
+
+  return map[tool] || tool.toLowerCase();
+}
+
+function normalizePlan(plan) {
+
+  return plan
+    .toLowerCase()
+    .replace(/\s+/g, "");
+}
+
   // -------------------------
   // SUBMIT
   // -------------------------
@@ -387,15 +413,9 @@ export default function HeroRight() {
   const formattedData =
     toolEntries.map((entry) => ({
 
-      tool:
-        entry.tool
-          .toLowerCase()
-          .replace(/\s+/g, ""),
+     tool: normalizeTool(entry.tool),
 
-      plan:
-        entry.plan
-          .toLowerCase()
-          .replace(/\s+/g, ""),
+      plan: normalizePlan(entry.plan),
 
       seats: Number(entry.seats),
 
@@ -406,10 +426,7 @@ export default function HeroRight() {
       useCase: entry.useCase,
     }));
 
-  const results =
-    formattedData.map((item) =>
-      auditEngine(item)
-    );
+  const results = auditEngine(formattedData);
 
     console.log("AUDIT RESULTS", results);
 
@@ -483,14 +500,23 @@ const completedIn =
       >
 
         {/* TOOL ENTRIES */}
-        {toolEntries.map((entry) => {
+       {toolEntries.map((entry) => {
 
-          const selectedTool =
-            toolsData.find(
-              (tool) =>
-                tool.name ===
-                entry.tool
-            );
+  const selectedTool =
+    toolsData.find(
+      (tool) =>
+        tool.name ===
+        entry.tool
+    );
+
+  const isApiTool =
+    entry.tool === "OpenAI API" ||
+    entry.tool === "Anthropic API";
+
+  
+
+ 
+
 
           return (
             <div
@@ -789,44 +815,44 @@ const completedIn =
                 </div>
 
                 {/* SEATS */}
-                <div>
+                {/* SEATS */}
+{!isApiTool && (
+  <div>
 
-                  <label className="block text-sm text-gray-300 mb-3">
-                    Seats Using This Tool
-                  </label>
+    <label className="block text-sm text-gray-300 mb-3">
+      Seats Using This Tool
+    </label>
 
-                  <input
-                    type="number"
-                    value={entry.seats}
-                    onChange={(e) =>
-                      updateToolEntry(
-                        entry.id,
-                        "seats",
-                        e.target.value
-                      )
-                    }
-                    placeholder="5"
-                    className="
-                      w-full
-                      rounded-2xl
-                      border border-white/10
-                      bg-[#111827]/70
-                      px-5 py-4
-                      text-lg
-                      text-white
-                      outline-none
-                    "
-                  />
+    <input
+      type="number"
+      value={entry.seats}
+      onChange={(e) =>
+        updateToolEntry(
+          entry.id,
+          "seats",
+          e.target.value
+        )
+      }
+      placeholder="5"
+      className="
+        w-full
+        rounded-2xl
+        border border-white/10
+        bg-[#111827]/70
+        px-5 py-4
+        text-lg
+        text-white
+        outline-none
+      "
+    />
 
-                  {entry.errors.seats && (
-                    <p className="text-red-400 text-sm mt-2">
-                      {
-                        entry.errors
-                          .seats
-                      }
-                    </p>
-                  )}
-                </div>
+    {entry.errors.seats && (
+      <p className="text-red-400 text-sm mt-2">
+        {entry.errors.seats}
+      </p>
+    )}
+  </div>
+)}
               </div>
 
               {/* MONTHLY SPEND */}

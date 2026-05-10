@@ -46,12 +46,12 @@ export const pricingData = {
     },
     openai: {
         plans: {
-            GPTmodels: null,
+              gptModels: "usage-based",
         }
     },
     authropicapi: {
         plans: {
-             claudemodels: null,
+              claudeModels: "usage-based",
         }
     }
 

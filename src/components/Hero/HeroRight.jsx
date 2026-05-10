@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { auditEngine } from "../../utils/auditEngine";
+import {useNavigate} from "react-router-dom";
 
 import {
   ChevronDown,
   ArrowRight,
   Lock,
   MousePointer2,
+  Plus,
+  Trash2,
 } from "lucide-react";
 
 import {
@@ -44,12 +47,12 @@ const toolsData = [
   },
 
   {
-    name: "GitHub Copilot",
+    name: "copilot",
     icon: SiGithubcopilot,
     plans: [
-      "Individual",
-      "Business",
-      "Enterprise",
+      "Free",
+      "Pro",
+      "proPlus",
     ],
   },
 
@@ -59,7 +62,9 @@ const toolsData = [
     plans: [
       "Hobby",
       "Pro",
-      "Business",
+      "proPlus",
+      "Ultra",
+      "Teams",
       "Enterprise",
     ],
   },
@@ -68,20 +73,21 @@ const toolsData = [
     name: "Gemini",
     icon: SiGooglegemini,
     plans: [
-      "Pro",
-      "Ultra",
-      "API",
+      "Free",
+      "aiPlus",
+      "aiPro",
+      "aiUltra",
     ],
   },
 
   {
-    name: "OpenAI API",
+    name: "openai",
     icon: SiOpenai,
     plans: ["API Direct"],
   },
 
   {
-    name: "Anthropic API",
+    name: "authropicapi",
     icon: SiClaude,
     plans: ["API Direct"],
   },
@@ -99,111 +105,336 @@ const toolsData = [
 
 export default function HeroRight() {
 
-  // -------------------------
-  // FORM STATES
-  // -------------------------
 
-  const [selectedTool, setSelectedTool] =
-    useState(toolsData[0]);
-
-  const [dropdownOpen, setDropdownOpen] =
-    useState(false);
-
-  const [selectedPlan, setSelectedPlan] =
-    useState(toolsData[0].plans[0]);
-
-  const [teamSize, setTeamSize] =
-    useState(10);
-
-  const [seats, setSeats] =
-    useState(5);
-
-  const [monthlySpend, setMonthlySpend] =
-    useState(500);
-
-  const [useCase, setUseCase] =
-    useState("coding");
+  const navigate = useNavigate();
 
   // -------------------------
-  // LOCAL STORAGE PERSISTENCE
+  // TOOL ENTRIES
+  // -------------------------
+
+  const [toolEntries, setToolEntries] =
+    useState([
+      {
+        id: Date.now(),
+
+        tool: "ChatGPT",
+
+        plan: "Free",
+
+        useCase: "coding",
+
+        teamSize: "",
+
+        seats: "",
+
+        monthlySpend: "",
+
+        errors: {},
+
+        dropdownOpen: false,
+      },
+    ]);
+
+  // -------------------------
+  // ADD TOOL
+  // -------------------------
+
+  const addToolEntry = () => {
+
+    setToolEntries((prev) => [
+      ...prev,
+
+      {
+        id: Date.now(),
+
+        tool: "ChatGPT",
+
+        plan: "Free",
+
+        useCase: "coding",
+
+        teamSize: "",
+
+        seats: "",
+
+        monthlySpend: "",
+
+        errors: {},
+
+        dropdownOpen: false,
+      },
+    ]);
+  };
+
+  // -------------------------
+  // REMOVE TOOL
+  // -------------------------
+
+  const removeToolEntry = (id) => {
+
+    if (toolEntries.length === 1) return;
+
+    setToolEntries(
+      toolEntries.filter(
+        (entry) => entry.id !== id
+      )
+    );
+  };
+
+  // -------------------------
+  // UPDATE FIELD
+  // -------------------------
+
+  const updateToolEntry = (
+    id,
+    field,
+    value
+  ) => {
+
+    setToolEntries((prev) =>
+      prev.map((entry) => {
+
+        if (entry.id !== id)
+          return entry;
+
+        return {
+          ...entry,
+
+          [field]: value,
+
+          errors: {
+            ...entry.errors,
+
+            [field]: "",
+          },
+        };
+      })
+    );
+  };
+
+  // -------------------------
+  // TOOL CHANGE
+  // -------------------------
+
+  const handleToolChange = (
+    id,
+    toolName
+  ) => {
+
+    const selectedTool =
+      toolsData.find(
+        (tool) =>
+          tool.name === toolName
+      );
+
+    setToolEntries((prev) =>
+      prev.map((entry) => {
+
+        if (entry.id !== id)
+          return entry;
+
+        return {
+          ...entry,
+
+          tool: selectedTool.name,
+
+          plan:
+            selectedTool.plans[0],
+
+          dropdownOpen: false,
+        };
+      })
+    );
+  };
+
+  // -------------------------
+  // DROPDOWN TOGGLE
+  // -------------------------
+
+  const toggleDropdown = (id) => {
+
+    setToolEntries((prev) =>
+      prev.map((entry) => {
+
+        if (entry.id !== id)
+          return entry;
+
+        return {
+          ...entry,
+
+          dropdownOpen:
+            !entry.dropdownOpen,
+        };
+      })
+    );
+  };
+
+  // -------------------------
+  // VALIDATION
+  // -------------------------
+
+  const validateEntries = () => {
+
+    let isValid = true;
+
+    const updatedEntries =
+      toolEntries.map((entry) => {
+
+        const errors = {};
+
+        if (!entry.tool) {
+          errors.tool =
+            "Tool is required";
+        }
+
+        if (!entry.plan) {
+          errors.plan =
+            "Plan is required";
+        }
+
+        if (!entry.useCase) {
+          errors.useCase =
+            "Use case is required";
+        }
+
+        if (
+          !entry.teamSize ||
+          Number(entry.teamSize) <= 0
+        ) {
+          errors.teamSize =
+            "Valid team size required";
+        }
+
+        if (
+          !entry.seats ||
+          Number(entry.seats) <= 0
+        ) {
+          errors.seats =
+            "Valid seats required";
+        }
+
+        if (
+          !entry.monthlySpend ||
+          Number(
+            entry.monthlySpend
+          ) <= 0
+        ) {
+          errors.monthlySpend =
+            "Valid monthly spend required";
+        }
+
+        if (
+          Object.keys(errors).length >
+          0
+        ) {
+          isValid = false;
+        }
+
+        return {
+          ...entry,
+          errors,
+        };
+      });
+
+    setToolEntries(updatedEntries);
+
+    return isValid;
+  };
+
+  // -------------------------
+  // LOCAL STORAGE
   // -------------------------
 
   useEffect(() => {
-    const savedData =
-      localStorage.getItem("aiSpendForm");
 
-    if (savedData) {
-      const parsed = JSON.parse(savedData);
-
-      const tool =
-        toolsData.find(
-          (t) => t.name === parsed.selectedTool
-        ) || toolsData[0];
-
-      setSelectedTool(tool);
-
-      setSelectedPlan(
-        parsed.selectedPlan || tool.plans[0]
+    const saved =
+      localStorage.getItem(
+        "aiSpendEntries"
       );
 
-      setTeamSize(parsed.teamSize || 10);
-
-      setSeats(parsed.seats || 5);
-
-      setMonthlySpend(
-        parsed.monthlySpend || 500
-      );
-
-      setUseCase(
-        parsed.useCase || "coding"
+    if (saved) {
+      setToolEntries(
+        JSON.parse(saved)
       );
     }
+
   }, []);
 
   useEffect(() => {
+
     localStorage.setItem(
-      "aiSpendForm",
-      JSON.stringify({
-        selectedTool: selectedTool.name,
-        selectedPlan,
-        teamSize,
-        seats,
-        monthlySpend,
-        useCase,
-      })
+      "aiSpendEntries",
+
+      JSON.stringify(toolEntries)
     );
-  }, [
-    selectedTool,
-    selectedPlan,
-    teamSize,
-    seats,
-    monthlySpend,
-    useCase,
-  ]);
+
+  }, [toolEntries]);
 
   // -------------------------
   // SUBMIT
   // -------------------------
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+ const handleSubmit = (e) => {
 
-    const userData = {
-      tool: selectedTool.name.toLowerCase(),
-      plan: selectedPlan.toLowerCase(),
-      teamSize: Number(teamSize),
-      seats: Number(seats),
-      monthlySpend: Number(monthlySpend),
-      useCase,
-    };
+  e.preventDefault();
 
-    const result = auditEngine(userData);
+  const startTime = performance.now();
 
-    console.log(result);
+  const isValid = validateEntries();
 
-    // later:
-    // navigate("/results", { state: result })
-  };
+  if (!isValid) return;
+
+  const formattedData =
+    toolEntries.map((entry) => ({
+
+      tool:
+        entry.tool
+          .toLowerCase()
+          .replace(/\s+/g, ""),
+
+      plan:
+        entry.plan
+          .toLowerCase()
+          .replace(/\s+/g, ""),
+
+      seats: Number(entry.seats),
+
+      teamSize: Number(entry.teamSize),
+
+      monthlySpend: Number(entry.monthlySpend),
+
+      useCase: entry.useCase,
+    }));
+
+  const results =
+    formattedData.map((item) =>
+      auditEngine(item)
+    );
+
+    console.log("AUDIT RESULTS", results);
+
+    const endTime = performance.now();
+
+const completedIn =
+  ((endTime - startTime) / 1000).toFixed(1);
+
+  // DYNAMIC AUDIT ID
+  const auditId =
+    `AUD-${crypto.randomUUID()
+      .slice(0, 8)
+      .toUpperCase()}`;
+
+  // NAVIGATE TO RESULTS PAGE
+  navigate("/results", {
+    state: {
+      auditId,
+      results,
+      rawEntries: toolEntries,
+        completedIn: `${completedIn}s`,
+    auditDate: new Date().toISOString(),
+    },
+  });
+};
 
   return (
     <div
@@ -225,6 +456,7 @@ export default function HeroRight() {
       <div className="flex items-start justify-between mb-8">
 
         <div>
+
           <h2 className="text-3xl font-semibold tracking-tight">
             AI Spend Analyzer
           </h2>
@@ -234,7 +466,6 @@ export default function HeroRight() {
           </p>
         </div>
 
-        {/* LIVE */}
         <div className="flex items-center gap-2 mt-1">
 
           <div className="w-2.5 h-2.5 rounded-full bg-green-400 shadow-[0_0_10px_#4ade80]" />
@@ -248,291 +479,426 @@ export default function HeroRight() {
       {/* FORM */}
       <form
         onSubmit={handleSubmit}
-        className="space-y-6"
+        className="space-y-8"
       >
 
-        {/* TOOL */}
-        <div>
+        {/* TOOL ENTRIES */}
+        {toolEntries.map((entry) => {
 
-          <label className="block text-sm text-gray-300 mb-3">
-            Tool Selection
-          </label>
+          const selectedTool =
+            toolsData.find(
+              (tool) =>
+                tool.name ===
+                entry.tool
+            );
 
-          <div className="relative">
-
-            {/* SELECTED */}
-            <button
-              type="button"
-              onClick={() =>
-                setDropdownOpen(!dropdownOpen)
-              }
+          return (
+            <div
+              key={entry.id}
               className="
-                w-full
-                flex items-center justify-between
-                rounded-2xl
+                rounded-3xl
                 border border-white/10
-                bg-[#111827]/70
-                px-5 py-4
-                text-white
+                bg-[#0f172a]/70
+                p-6
+                space-y-6
               "
             >
 
-              <div className="flex items-center gap-3">
+              {/* CARD HEADER */}
+              <div className="flex items-center justify-between">
 
-                <selectedTool.icon className="text-2xl" />
+                <h3 className="text-xl font-semibold">
+                  Tool Entry
+                </h3>
 
-                <span className="text-lg">
-                  {selectedTool.name}
-                </span>
+                <button
+                  type="button"
+                  onClick={() =>
+                    removeToolEntry(
+                      entry.id
+                    )
+                  }
+                  className="
+                    flex items-center gap-2
+                    text-red-400
+                    hover:text-red-300
+                    transition-all
+                  "
+                >
+
+                  <Trash2 className="w-4 h-4" />
+
+                  Remove
+                </button>
               </div>
 
-              <ChevronDown className="text-gray-400" />
-            </button>
+              {/* TOOL */}
+              <div>
 
-            {/* DROPDOWN */}
-            {dropdownOpen && (
-              <div
-                className="
-                  absolute
-                  top-full
-                  left-0
-                  mt-3
-                  w-full
-                  rounded-2xl
-                  border border-white/10
-                  bg-[#0f172a]
-                  backdrop-blur-xl
-                  overflow-hidden
-                  z-50
-                "
-              >
-                {toolsData.map((tool) => (
+                <label className="block text-sm text-gray-300 mb-3">
+
+                  Tool Selection
+                </label>
+
+                <div className="relative">
+
                   <button
-                    key={tool.name}
                     type="button"
-                    onClick={() => {
-                      setSelectedTool(tool);
-
-                      setSelectedPlan(
-                        tool.plans[0]
-                      );
-
-                      setDropdownOpen(false);
-                    }}
+                    onClick={() =>
+                      toggleDropdown(
+                        entry.id
+                      )
+                    }
                     className="
                       w-full
-                      flex items-center gap-3
+                      flex items-center justify-between
+                      rounded-2xl
+                      border border-white/10
+                      bg-[#111827]/70
                       px-5 py-4
-                      hover:bg-white/5
-                      transition-all
+                      text-white
                     "
                   >
 
-                    <tool.icon className="text-2xl" />
+                    <div className="flex items-center gap-3">
 
-                    <span>{tool.name}</span>
+                      <selectedTool.icon className="text-2xl" />
+
+                      <span className="text-lg">
+                        {
+                          selectedTool.name
+                        }
+                      </span>
+                    </div>
+
+                    <ChevronDown className="text-gray-400" />
                   </button>
-                ))}
+
+                  {/* DROPDOWN */}
+                  {entry.dropdownOpen && (
+
+                    <div
+                      className="
+                        absolute
+                        top-full
+                        left-0
+                        mt-3
+                        w-full
+                        rounded-2xl
+                        border border-white/10
+                        bg-[#0f172a]
+                        overflow-hidden
+                        z-50
+                      "
+                    >
+
+                      {toolsData.map(
+                        (tool) => (
+                          <button
+                            key={tool.name}
+                            type="button"
+                            onClick={() =>
+                              handleToolChange(
+                                entry.id,
+                                tool.name
+                              )
+                            }
+                            className="
+                              w-full
+                              flex items-center gap-3
+                              px-5 py-4
+                              hover:bg-white/5
+                              transition-all
+                            "
+                          >
+
+                            <tool.icon className="text-2xl" />
+
+                            <span>
+                              {tool.name}
+                            </span>
+                          </button>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+
+                {entry.errors.tool && (
+                  <p className="text-red-400 text-sm mt-2">
+                    {
+                      entry.errors.tool
+                    }
+                  </p>
+                )}
               </div>
-            )}
-          </div>
-        </div>
 
-        {/* PLAN + USE CASE */}
-        <div className="grid md:grid-cols-2 gap-5">
+              {/* PLAN + USE CASE */}
+              <div className="grid md:grid-cols-2 gap-5">
 
-          {/* PLAN */}
-          <div>
+                {/* PLAN */}
+                <div>
 
-            <label className="block text-sm text-gray-300 mb-3">
-              Current Plan
-            </label>
+                  <label className="block text-sm text-gray-300 mb-3">
+                    Current Plan
+                  </label>
 
-            <div className="relative">
+                  <div className="relative">
 
-              <select
-                value={selectedPlan}
-                onChange={(e) =>
-                  setSelectedPlan(e.target.value)
-                }
-                className="
-                  w-full
-                  appearance-none
-                  rounded-2xl
-                  border border-white/10
-                  bg-[#111827]/70
-                  px-5 py-4
-                  text-lg
-                  text-white
-                  outline-none
-                  focus:border-blue-500
-                  transition-all
-                "
-              >
-                {selectedTool.plans.map((plan) => (
-                  <option
-                    key={plan}
-                    value={plan}
-                    className="bg-[#111827]"
+                    <select
+                      value={entry.plan}
+                      onChange={(e) =>
+                        updateToolEntry(
+                          entry.id,
+                          "plan",
+                          e.target.value
+                        )
+                      }
+                      className="
+                        w-full
+                        appearance-none
+                        rounded-2xl
+                        border border-white/10
+                        bg-[#111827]/70
+                        px-5 py-4
+                        text-lg
+                        text-white
+                        outline-none
+                      "
+                    >
+
+                      {selectedTool.plans.map(
+                        (plan) => (
+                          <option
+                            key={plan}
+                            value={plan}
+                            className="bg-[#111827]"
+                          >
+                            {plan}
+                          </option>
+                        )
+                      )}
+                    </select>
+
+                    <ChevronDown
+                      className="
+                        absolute
+                        right-5
+                        top-1/2
+                        -translate-y-1/2
+                        text-gray-400
+                        pointer-events-none
+                      "
+                    />
+                  </div>
+                </div>
+
+                {/* USE CASE */}
+                <div>
+
+                  <label className="block text-sm text-gray-300 mb-3">
+                    Primary Use Case
+                  </label>
+
+                  <select
+                    value={entry.useCase}
+                    onChange={(e) =>
+                      updateToolEntry(
+                        entry.id,
+                        "useCase",
+                        e.target.value
+                      )
+                    }
+                    className="
+                      w-full
+                      rounded-2xl
+                      border border-white/10
+                      bg-[#111827]/70
+                      px-5 py-4
+                      text-lg
+                      text-white
+                      outline-none
+                    "
                   >
-                    {plan}
-                  </option>
-                ))}
-              </select>
 
-              <ChevronDown
-                className="
-                  absolute
-                  right-5
-                  top-1/2
-                  -translate-y-1/2
-                  text-gray-400
-                  pointer-events-none
-                "
-              />
+                    <option value="coding">
+                      Coding
+                    </option>
+
+                    <option value="writing">
+                      Writing
+                    </option>
+
+                    <option value="research">
+                      Research
+                    </option>
+
+                    <option value="data">
+                      Data
+                    </option>
+
+                    <option value="mixed">
+                      Mixed
+                    </option>
+                  </select>
+                </div>
+              </div>
+
+              {/* TEAM + SEATS */}
+              <div className="grid md:grid-cols-2 gap-5">
+
+                {/* TEAM SIZE */}
+                <div>
+
+                  <label className="block text-sm text-gray-300 mb-3">
+                    Team Size
+                  </label>
+
+                  <input
+                    type="number"
+                    value={entry.teamSize}
+                    onChange={(e) =>
+                      updateToolEntry(
+                        entry.id,
+                        "teamSize",
+                        e.target.value
+                      )
+                    }
+                    placeholder="25"
+                    className="
+                      w-full
+                      rounded-2xl
+                      border border-white/10
+                      bg-[#111827]/70
+                      px-5 py-4
+                      text-lg
+                      text-white
+                      outline-none
+                    "
+                  />
+
+                  {entry.errors
+                    .teamSize && (
+                    <p className="text-red-400 text-sm mt-2">
+                      {
+                        entry.errors
+                          .teamSize
+                      }
+                    </p>
+                  )}
+                </div>
+
+                {/* SEATS */}
+                <div>
+
+                  <label className="block text-sm text-gray-300 mb-3">
+                    Seats Using This Tool
+                  </label>
+
+                  <input
+                    type="number"
+                    value={entry.seats}
+                    onChange={(e) =>
+                      updateToolEntry(
+                        entry.id,
+                        "seats",
+                        e.target.value
+                      )
+                    }
+                    placeholder="5"
+                    className="
+                      w-full
+                      rounded-2xl
+                      border border-white/10
+                      bg-[#111827]/70
+                      px-5 py-4
+                      text-lg
+                      text-white
+                      outline-none
+                    "
+                  />
+
+                  {entry.errors.seats && (
+                    <p className="text-red-400 text-sm mt-2">
+                      {
+                        entry.errors
+                          .seats
+                      }
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* MONTHLY SPEND */}
+              <div>
+
+                <label className="block text-sm text-gray-300 mb-3">
+                  Current Monthly Spend
+                  (USD)
+                </label>
+
+                <input
+                  type="number"
+                  value={
+                    entry.monthlySpend
+                  }
+                  onChange={(e) =>
+                    updateToolEntry(
+                      entry.id,
+                      "monthlySpend",
+                      e.target.value
+                    )
+                  }
+                  placeholder="2400"
+                  className="
+                    w-full
+                    rounded-2xl
+                    border border-white/10
+                    bg-[#111827]/70
+                    px-5 py-4
+                    text-lg
+                    text-white
+                    outline-none
+                  "
+                />
+
+                {entry.errors
+                  .monthlySpend && (
+                  <p className="text-red-400 text-sm mt-2">
+                    {
+                      entry.errors
+                        .monthlySpend
+                    }
+                  </p>
+                )}
+              </div>
             </div>
-          </div>
+          );
+        })}
 
-          {/* USE CASE */}
-          <div>
+        {/* ADD BUTTON */}
+        <button
+          type="button"
+          onClick={addToolEntry}
+          className="
+            w-full
+            flex items-center justify-center gap-3
+            rounded-2xl
+            border border-dashed border-blue-500/40
+            bg-blue-500/5
+            py-5
+            text-blue-400
+            hover:bg-blue-500/10
+            transition-all
+          "
+        >
 
-            <label className="block text-sm text-gray-300 mb-3">
-              Primary Use Case
-            </label>
+          <Plus className="w-5 h-5" />
 
-            <select
-              value={useCase}
-              onChange={(e) =>
-                setUseCase(e.target.value)
-              }
-              className="
-                w-full
-                rounded-2xl
-                border border-white/10
-                bg-[#111827]/70
-                px-5 py-4
-                text-lg
-                text-white
-                outline-none
-                focus:border-blue-500
-                transition-all
-              "
-            >
-              <option value="coding">
-                Coding
-              </option>
+          Add Another Tool
+        </button>
 
-              <option value="writing">
-                Writing
-              </option>
-
-              <option value="research">
-                Research
-              </option>
-
-              <option value="data">
-                Data
-              </option>
-
-              <option value="mixed">
-                Mixed
-              </option>
-            </select>
-          </div>
-        </div>
-
-        {/* TEAM SIZE + SEATS */}
-        <div className="grid md:grid-cols-2 gap-5">
-
-          {/* TEAM SIZE */}
-          <div>
-
-            <label className="block text-sm text-gray-300 mb-3">
-              Team Size
-            </label>
-
-            <input
-              type="number"
-              value={teamSize}
-              onChange={(e) =>
-                setTeamSize(e.target.value)
-              }
-              placeholder="25"
-              className="
-                w-full
-                rounded-2xl
-                border border-white/10
-                bg-[#111827]/70
-                px-5 py-4
-                text-lg
-                text-white
-                outline-none
-                focus:border-blue-500
-                transition-all
-              "
-            />
-          </div>
-
-          {/* SEATS */}
-          <div>
-
-            <label className="block text-sm text-gray-300 mb-3">
-              Seats Using This Tool
-            </label>
-
-            <input
-              type="number"
-              value={seats}
-              onChange={(e) =>
-                setSeats(e.target.value)
-              }
-              placeholder="5"
-              className="
-                w-full
-                rounded-2xl
-                border border-white/10
-                bg-[#111827]/70
-                px-5 py-4
-                text-lg
-                text-white
-                outline-none
-                focus:border-blue-500
-                transition-all
-              "
-            />
-          </div>
-        </div>
-
-        {/* MONTHLY SPEND */}
-        <div>
-
-          <label className="block text-sm text-gray-300 mb-3">
-            Current Monthly Spend (USD)
-          </label>
-
-          <input
-            type="number"
-            value={monthlySpend}
-            onChange={(e) =>
-              setMonthlySpend(e.target.value)
-            }
-            placeholder="2400"
-            className="
-              w-full
-              rounded-2xl
-              border border-white/10
-              bg-[#111827]/70
-              px-5 py-4
-              text-lg
-              text-white
-              outline-none
-              focus:border-blue-500
-              transition-all
-            "
-          />
-        </div>
-
-        {/* BUTTON */}
+        {/* SUBMIT */}
         <button
           type="submit"
           className="

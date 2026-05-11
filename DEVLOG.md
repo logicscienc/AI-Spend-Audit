@@ -108,3 +108,90 @@ Hours worked: 7
 * Improve audit summary generation with AI-style explanations
 * Refine responsive layout and overall design polish
 * Continue expanding audit rules for additional AI tools and edge cases
+
+
+
+# Day 4 — 2026-05-11
+
+## What I did today
+
+Today I focused heavily on building and stabilizing the **Audit Engine logic** for my AI Spend Audit project.
+
+I worked on expanding and refining the `auditEngine.jsx`, where I defined multiple **rule-based optimization conditions** for different AI tools like ChatGPT, Claude, GitHub Copilot, Cursor, Gemini, and API-based usage.
+
+Key work completed:
+
+- Built a rule-based decision engine to evaluate AI tool subscriptions
+- Implemented cost calculation logic based on:
+  - current plan price
+  - number of seats
+  - usage type (coding, writing, mixed, etc.)
+- Added optimization rules such as:
+  - Downgrading overkill plans (e.g., Pro → Plus / Free)
+  - Detecting team inefficiencies (too many seats on free plans)
+  - Suggesting better plans (Business / Team upgrades)
+  - Identifying tool overlap (Copilot vs Cursor vs ChatGPT)
+- Standardized most return outputs using `buildAuditResult()`
+- Improved consistency in returned data structure for UI usage
+
+I also started preparing the **frontend layer (Results page)** by understanding how the flattened data from `results.tools` will be used in UI components like tables, cards, and charts.
+
+---
+
+## What I learned
+
+- How important **consistent data structures** are for frontend stability
+- Why returning different object shapes from different conditions breaks UI logic
+- How to design a **rule-based evaluation engine** (like a decision system)
+- The value of separating:
+  - raw evaluation logic (`evaluateTool`)
+  - normalization layer (`buildAuditResult`)
+  - aggregation layer (`auditEngine`)
+- How frontend issues (like chart warnings) often come from **bad or inconsistent backend data**
+
+Also learned a key architecture insight:
+
+> UI should never care how logic is computed — only care about final normalized shape.
+
+---
+
+## Blockers / Issues I faced
+
+- Initially had inconsistent return objects across rules
+- Some rules were returning partial data (missing fields like `plan`, `currentCost`, etc.)
+- Confusion about whether all rules need identical structure (they do)
+- Recharts warning about invalid container width/height (`-1` issue)
+- Slight uncertainty about whether audit engine is “complete enough” for UI
+
+---
+
+## How I resolved them
+
+- Standardized return format using `buildAuditResult`
+- Ensured all rules include:
+  - tool, plan
+  - currentCost, optimizedCost
+  - monthlySavings, annualSavings
+  - recommendation, reason
+  - seats, useCase
+- Understood that UI must rely on a **flattened structure** later (`results.flatMap(item => item.tools)`)
+
+---
+
+## Plan for tomorrow
+
+- Flatten audit results properly in `Results.jsx`
+- Build UI table/card view for tool recommendations
+- Fix Recharts container sizing issue
+- Start designing:
+  - Savings visualization section
+  - Summary insights section (AI-generated summary card improvements)
+- Improve UX flow of audit results page (make it more readable and dashboard-like)
+
+---
+
+## Current status
+
+Backend logic: ~80% stable  
+Frontend integration: in progress  
+UI design: starting phase  

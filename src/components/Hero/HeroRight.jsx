@@ -442,15 +442,17 @@ const completedIn =
       .toUpperCase()}`;
 
   // NAVIGATE TO RESULTS PAGE
-  navigate("/results", {
-    state: {
-      auditId,
-      results,
-      rawEntries: toolEntries,
-        completedIn: `${completedIn}s`,
-    auditDate: new Date().toISOString(),
-    },
-  });
+  const payload = {
+  auditId,
+  results,
+  rawEntries: toolEntries,
+  completedIn: `${completedIn}s`,
+  auditDate: new Date().toISOString(),
+};
+
+console.log("🚀 NAVIGATING WITH PAYLOAD:", payload);
+
+navigate("/results", { state: payload });
 };
 
   return (

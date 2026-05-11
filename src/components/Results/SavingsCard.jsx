@@ -33,29 +33,19 @@ export default function SavingsCard({
   // TOTAL POTENTIAL SAVINGS
   // -------------------------
 
-  const totalMonthlySavings =
-    results.reduce(
-      (acc, item) =>
-        acc +
-        Number(
-          item?.totalMonthlySavings || 0
-        ),
-      0
-    );
+ const totalMonthlySavings =
+  results.reduce(
+    (acc, item) =>
+      acc + Number(item?.monthlySavings || 0),
+    0
+  );
 
-  // -------------------------
-  // YEARLY SAVINGS
-  // -------------------------
-
-  const yearlySavings =
-    results.reduce(
-      (acc, item) =>
-        acc +
-        Number(
-          item?.totalAnnualSavings || 0
-        ),
-      0
-    );
+const yearlySavings =
+  results.reduce(
+    (acc, item) =>
+      acc + Number(item?.annualSavings || 0),
+    0
+  );
 
   // -------------------------
   // SAVINGS %

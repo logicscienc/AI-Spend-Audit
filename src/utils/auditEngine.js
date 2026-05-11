@@ -24,7 +24,7 @@ export function auditEngine(userData)
   )
 
   return {
-    tools: results,
+    results,
     totalMonthlySavings,
     totalAnnualSavings: totalMonthlySavings * 12
   }
@@ -70,7 +70,7 @@ function evaluateTool(userData) {
 
     const optimizedCost = getPrice("chatgpt", "go")
 
-    const savings = currentPrice - optimizedCost
+    const savings = currentCost - optimizedCost
 
    return buildAuditResult({
   tool,
@@ -127,7 +127,7 @@ function evaluateTool(userData) {
   {
         const optimizedCost = getPrice("chatgpt", "plus")
 
-         const savings = currentPrice - optimizedCost   
+         const savings = currentCost - optimizedCost   
 
         return buildAuditResult({
     tool,
@@ -172,26 +172,36 @@ function evaluateTool(userData) {
 
   // Rule 5 -> Multiple Plus accounts should consolidate
 
-  if (tool === "chatgpt" && plan === "plus" && seats >= 5) {
+ if (
+  tool === "chatgpt" &&
+  plan === "plus" &&
+  seats >= 5
+) {
+
+  const optimizedCost =
+    getPrice("chatgpt", "business") * seats;
+
+  const savings =
+    currentCost - optimizedCost;
 
   return buildAuditResult({
     tool,
     plan,
+
     currentCost,
-    optimizedCost: currentCost,
+    optimizedCost,
 
-    monthlySavings: 0,
-    annualSavings: 0,
+    monthlySavings: savings,
+    annualSavings: savings * 12,
 
+    recommendation:
+      "Switch to ChatGPT Business",
 
-     recommendation: "Evaluate ChatGPT Business",
+    reason:
+      "Multiple Plus accounts can lead to fragmented billing and management. Consolidating under a Business plan may reduce costs and improve collaboration features.",
 
-
-     reason: "Multiple Plus accounts can lead to fragmented billing and management. Consolidating under a Business plan may offer better cost efficiency and team collabloration features.",
-     seats,
-     useCase,
-
-
+    seats,
+    useCase,
   });
 }
 
@@ -258,7 +268,7 @@ if(tool === "claude" && plan === "pro" && seats === 1)
 {
     const optimizedCost = getPrice("claude", "free")
 
-    const savings = currentPrice - optimizedCost
+    const savings = currentCost - optimizedCost
 
     return buildAuditResult({
       tool,

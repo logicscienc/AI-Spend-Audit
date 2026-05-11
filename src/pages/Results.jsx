@@ -1,121 +1,171 @@
-import React, {useEffect, useState, useCallback} from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import { useLocation } from "react-router-dom";
+import PerToolAuditSection from "../components/Results/audit/PerToolAuditSection";
 import SavingsCard from "../components/Results/SavingsCard";
 import Navbar from "../components/Home/Navbar";
 import Topbar from "../components/Results/Topbar";
 import AuditHeroCard from "../components/Results/AuditheroCard";
 import AISummaryCard from "../components/Results/AISummaryCard";
 import CredexCard from "../components/Results/CredexCard";
-
+import ResultsTabs from "../components/Results/layout/ResultsTabs";
+import UserInputsSection from "../components/Results/audit/UserInputsSection";
+import SavingsBreakdownSection from "../components/Results/charts/SavingsBreakdownSection";
+import RecommendationsSection from "../components/Results/audit/RecommendationsSection";
 const Results = () => {
-
   const location = useLocation();
+
   const [summary, setSummary] = useState("");
   const [loadingSummary, setLoadingSummary] = useState(true);
+  const [activeTab, setActiveTab] = useState("audit-results");
+  const [showAnnual, setShowAnnual] = useState(false);
+
   const {
     auditId,
-    results = [],
+    results,
     rawEntries = [],
     completedIn,
-  auditDate,
+    auditDate,
   } = location.state || {};
 
-  console.log(auditId);
-  console.log(results);
-  console.log(rawEntries);
+  // -------------------------
+  // SAFE DATA NORMALIZATION
+  // -------------------------
+  const safeResults = results || {};
+  const toolResults = safeResults.results || [];
 
-  const flattenedResults =
-  results.flatMap((item) => item.tools);
+  console.log("auditId:", auditId);
+  console.log("results:", results);
+  console.log("rawEntries:", rawEntries);
+  console.log("toolResults:", toolResults);
 
-console.log(flattenedResults);
+  // -------------------------
+  // MEMOIZED CALCULATIONS (IMPORTANT)
+  // -------------------------
+  const totalMonthlySavings = useMemo(() => {
+    return safeResults.totalMonthlySavings || 0;
+  }, [safeResults]);
 
-  const totalMonthlySavings =
-  results?.reduce(
-    (acc, item) =>
-      acc +
-      Number(item?.totalMonthlySavings || 0),
-    0
-  ) || 0;
+  const yearlySavings = useMemo(() => {
+    return safeResults.totalAnnualSavings || 0;
+  }, [safeResults]);
 
-const yearlySavings =
-  results?.reduce(
-    (acc, item) =>
-      acc +
-      Number(item?.totalAnnualSavings || 0),
-    0
-  ) || 0;
+  // -------------------------
+  // AI SUMMARY CALL (NO LOOP)
+  // -------------------------
+  const generateSummary = useCallback(async () => {
+    if (!toolResults.length) return;
 
-const generateSummary = useCallback(async () => {
-  setLoadingSummary(true);
+    setLoadingSummary(true);
 
-  try {
-    const response = await fetch("http://localhost:5000/generate-summary", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        results,
-        rawEntries,
-        totalMonthlySavings,
-        yearlySavings,
-      }),
-    });
+    try {
+      const response = await fetch("http://localhost:5000/generate-summary", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          results: toolResults,
+          rawEntries,
+          totalMonthlySavings,
+          yearlySavings,
+        }),
+      });
 
-    const data = await response.json();
-    setSummary(data.summary);
+      const data = await response.json();
+      setSummary(data.summary || "");
 
-  } catch (error) {
-    console.log(error);
-    setSummary("Unable to generate AI summary right now.");
-  } finally {
-    setLoadingSummary(false);
-  }
-}, [results, rawEntries, totalMonthlySavings, yearlySavings]);
+    } catch (error) {
+      console.log(error);
+      setSummary("Unable to generate AI summary right now.");
+    } finally {
+      setLoadingSummary(false);
+    }
+  }, [toolResults, rawEntries, totalMonthlySavings, yearlySavings]);
 
-useEffect(() => {
-  generateSummary();
-}, [generateSummary]);
+  // RUN ONCE ONLY
+  useEffect(() => {
+    generateSummary();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
 
-      {/* NAVBAR */}
       <Navbar />
 
-      {/* TOPBAR */}
       <Topbar auditId={auditId} />
 
-      {/* MAIN CONTENT */}
       <div className="max-w-7xl mx-auto px-6 py-8">
 
-        {/* GRID */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* TOP LEFT HERO CARD */}
+          {/* HERO */}
           <AuditHeroCard
             totalTools={rawEntries?.length || 0}
-             completedIn={completedIn}
-             auditDate={auditDate}
+            completedIn={completedIn}
+            auditDate={auditDate}
           />
 
-          {/* TEMP RIGHT CARD */}
+          {/* SAVINGS */}
           <SavingsCard
-           results={results}
-          rawEntries={rawEntries}
+            results={toolResults}
+            rawEntries={rawEntries}
           />
 
-          {/* Bottom left summary card */}
+          {/* SUMMARY */}
           <AISummaryCard
-             summary={summary}
+            summary={summary}
             loading={loadingSummary}
-              onRegenerate={generateSummary}
+            onRegenerate={generateSummary}
           />
 
-          {/* Bottom right Credex card */}
+          {/* TOTAL SAVINGS */}
           <CredexCard totalMonthlySavings={totalMonthlySavings} />
 
         </div>
+
+        {/* TABS */}
+<div className="mt-10">
+  <ResultsTabs 
+    activeTab={activeTab}
+    setActiveTab={setActiveTab}
+  />
+</div>
+
+         {/* ADD THIS HERE */}
+  {/* TAB CONTENT */}
+<div className="mt-8">
+
+  {activeTab === "audit-results" && (
+    <PerToolAuditSection
+      toolResults={toolResults}
+    />
+  )}
+
+   {activeTab === "your-inputs" && (
+    <UserInputsSection
+      rawEntries={rawEntries}
+    />
+  )}
+
+    {activeTab === "recommendations" && (
+    <RecommendationsSection
+      toolResults={toolResults}
+        showAnnual={showAnnual}
+        setShowAnnual={setShowAnnual}
+    />
+  )}
+
+   {activeTab === "savings-breakdown" && (
+    <SavingsBreakdownSection
+      toolResults={toolResults}
+      totalMonthlySavings={totalMonthlySavings}
+      yearlySavings={yearlySavings}
+        showAnnual={showAnnual}
+  setShowAnnual={setShowAnnual}
+    />
+  )}
+
+</div>
       </div>
     </div>
   );

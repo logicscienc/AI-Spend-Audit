@@ -195,3 +195,56 @@ Also learned a key architecture insight:
 Backend logic: ~80% stable  
 Frontend integration: in progress  
 UI design: starting phase  
+
+
+
+
+# 📘 Day 5 - 2026-05-11
+
+## What I did today
+- Structured the Results dashboard into a clean modular architecture (layout, cards, charts, audit, shared)
+- Built and integrated `SavingsBreakdownSection` with dynamic monthly/annual toggle
+- Implemented `SavingsChart` using Recharts with responsive visualization
+- Added custom tooltip (`CustomTooltip`) for better chart UX
+- Completed recommendations section with dynamic savings + review logic
+- Wired toggle state across multiple sections for consistent UI behavior
+- Fixed data flow issues between backend response and frontend rendering
+- Improved chart polish (axes, margins, bars, labels)
+
+## What I learned
+- How to structure large React dashboards using feature-based folder architecture
+- Importance of separating:
+  - business logic (utils like `getAuditStatus`)
+  - UI components (dumb/presentational components)
+- How Recharts works internally (Tooltip, BarChart, dataKey mapping issues)
+- Why backend shape consistency is critical (avoiding `reduce is not a function` type errors)
+- Better state design for global UI toggles (monthly/annual sync across components)
+
+## Blockers / Issues I faced
+- `results.flatMap is not a function` due to incorrect data structure from backend
+- `reduce is not a function` caused by treating object as array
+- Chart not rendering initially due to wrong `dataKey` mismatch (`name` vs `tool`)
+- Tooltip not showing because default Recharts behavior wasn’t replaced correctly
+- UI layout overlap issues (chart not visible / spacing issues in grid)
+
+## How I resolved them
+- Normalized backend response using `safeResults.results || []`
+- Added defensive checks (`Array.isArray`) before transformations
+- Fixed Recharts `dataKey` alignment with actual dataset structure
+- Properly injected `CustomTooltip` using `Tooltip content={...}`
+- Adjusted layout spacing using Tailwind (`h-[350px]`, `margin`, `grid gaps`)
+- Debugged step-by-step using console logs at each transformation stage
+
+## Plan for tomorrow
+- Add animation polish to charts (smooth transitions, hover effects)
+- Improve “Your Inputs” section UI (clean review-style layout)
+- Add export feature (PDF / CSV report download)
+- Enhance recommendation cards with severity-based grouping
+- Start backend optimization for faster summary generation
+
+## Current status
+- Dashboard UI: ~85% complete
+- Core data pipeline: stable
+- Charts: working + polished basic version
+- Recommendations system: functional
+- Next focus: UX polish + export features + final UI refinement

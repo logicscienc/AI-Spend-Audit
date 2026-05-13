@@ -108,9 +108,9 @@ export default function CredexCard({
     );
   }
 
-  // -----------------------------
+ 
   // HIGH SAVINGS CASE
-  // -----------------------------
+
 
   return (
     <div

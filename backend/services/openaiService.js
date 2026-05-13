@@ -14,22 +14,16 @@ export async function generateAISummary({
   yearlySavings,
 }) {
   try {
-    // -----------------------------
-    // SAFE FALLBACKS (IMPORTANT)
-    // -----------------------------
+    
     const safeResults = Array.isArray(results) ? results : [];
     const safeRawEntries = Array.isArray(rawEntries) ? rawEntries : [];
 
-    // -----------------------------
-    // BUILD TOOL SUMMARY
-    // -----------------------------
+  
     const toolList = safeRawEntries
       .map((tool) => `${tool.tool} (${tool.plan})`)
       .join(", ");
 
-    // -----------------------------
-    // PROMPT
-    // -----------------------------
+   
     const prompt = `
 You are an AI finance optimization assistant.
 
@@ -57,9 +51,7 @@ Audit results:
 ${JSON.stringify(safeResults)}
 `;
 
-    // -----------------------------
-    // OPENAI CALL
-    // -----------------------------
+    
     const response = await openai.chat.completions.create({
       model: "gpt-4.1-mini",
       messages: [

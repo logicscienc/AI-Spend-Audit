@@ -41,8 +41,7 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* RIGHT SIDE */}
-        {/* RIGHT SIDE */}
+
 <div className="flex items-center gap-3">
 
   {/* HISTORY BUTTON */}

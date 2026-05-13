@@ -17,9 +17,9 @@ export default function SavingsCard({
   rawEntries = [],
 }) {
 
-  // -------------------------
+ 
   // TOTAL CURRENT SPEND
-  // -------------------------
+ 
 
   const currentMonthlySpend =
     rawEntries.reduce(
@@ -29,9 +29,9 @@ export default function SavingsCard({
       0
     );
 
-  // -------------------------
+ 
   // TOTAL POTENTIAL SAVINGS
-  // -------------------------
+ 
 
  const totalMonthlySavings =
   results.reduce(
@@ -47,9 +47,9 @@ const yearlySavings =
     0
   );
 
-  // -------------------------
+ 
   // SAVINGS %
-  // -------------------------
+ 
 
   const savingsPercentage =
     currentMonthlySpend > 0
@@ -60,9 +60,9 @@ const yearlySavings =
         )
       : 0;
 
-  // -------------------------
+  
   // GRAPH DATA
-  // -------------------------
+ 
 
   const graphData = [
     {

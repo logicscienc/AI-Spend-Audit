@@ -106,9 +106,9 @@ export default function HeroRight() {
   const navigate = useNavigate();
    const [loading, setLoading] = useState(false);
 
-  // -------------------------
+  
   // TOOL ENTRIES
-  // -------------------------
+ 
 
   const [toolEntries, setToolEntries] =
     useState([
@@ -133,9 +133,8 @@ export default function HeroRight() {
       },
     ]);
 
-  // -------------------------
   // ADD TOOL
-  // -------------------------
+ 
 
   const addToolEntry = () => {
 
@@ -164,9 +163,9 @@ export default function HeroRight() {
     ]);
   };
 
-  // -------------------------
+
   // REMOVE TOOL
-  // -------------------------
+
 
   const removeToolEntry = (id) => {
 
@@ -179,9 +178,9 @@ export default function HeroRight() {
     );
   };
 
-  // -------------------------
+
   // UPDATE FIELD
-  // -------------------------
+ 
 
   const updateToolEntry = (
     id,
@@ -210,9 +209,9 @@ export default function HeroRight() {
     );
   };
 
-  // -------------------------
+
   // TOOL CHANGE
-  // -------------------------
+
 
   const handleToolChange = (
     id,
@@ -245,9 +244,9 @@ export default function HeroRight() {
     );
   };
 
-  // -------------------------
+ 
   // DROPDOWN TOGGLE
-  // -------------------------
+
 
   const toggleDropdown = (id) => {
 
@@ -267,9 +266,9 @@ export default function HeroRight() {
     );
   };
 
-  // -------------------------
+ 
   // VALIDATION
-  // -------------------------
+ 
 
   const validateEntries = () => {
 
@@ -346,9 +345,9 @@ if (
     return isValid;
   };
 
-  // -------------------------
+ 
   // LOCAL STORAGE
-  // -------------------------
+
 
   useEffect(() => {
 
@@ -398,9 +397,9 @@ function normalizePlan(plan) {
     .replace(/\s+/g, "");
 }
 
-  // -------------------------
+ 
   // SUBMIT
-  // -------------------------
+ 
 
 const handleSubmit = async (e) => {
   e.preventDefault();

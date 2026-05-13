@@ -22,7 +22,7 @@ function App() {
 
           {/* RESULTS PAGE */}
           <Route path="/results" element={<Results />} />
-           {/* HISTORY FLOW (IMPORTANT) */}
+           
   <Route path="/audit/:id" element={<Results />} />
 
           {/* AUDIT HISTORY PAGE */}

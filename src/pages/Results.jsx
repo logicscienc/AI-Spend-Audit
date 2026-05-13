@@ -66,9 +66,9 @@ const Results = () => {
   const [auditDate, setAuditDate] =
     useState("");
 
-  // =========================================
+
   // SUBMIT FLOW
-  // =========================================
+  
 
 useEffect(() => {
   if (!id && location.state) {
@@ -102,9 +102,9 @@ useEffect(() => {
   }
 }, [id, location.state]);
 
-  // =========================================
+ 
   // HISTORY FLOW
-  // =========================================
+ 
 
   useEffect(() => {
 
@@ -118,9 +118,9 @@ useEffect(() => {
 
         setNotFound(false);
 
-        // -----------------------
+        
         // CACHE
-        // -----------------------
+      
 
         const cachedAudit =
           sessionStorage.getItem(
@@ -163,9 +163,9 @@ useEffect(() => {
           return;
         }
 
-        // -----------------------
+       
         // FETCH BACKEND
-        // -----------------------
+      
 
         const res = await fetch(
           API.AUDIT_BY_ID(id)
@@ -183,18 +183,18 @@ useEffect(() => {
 
         const audit = data.audit;
 
-        // -----------------------
+        
         // SAVE CACHE
-        // -----------------------
+      
 
         sessionStorage.setItem(
           `audit-${id}`,
           JSON.stringify(audit)
         );
 
-        // -----------------------
+      
         // SET STATE
-        // -----------------------
+       
 
         setToolResults(
           Array.isArray(audit.results)
@@ -238,9 +238,9 @@ useEffect(() => {
 
   }, [id]);
 
-  // =========================================
+
   // GENERATE SUMMARY
-  // =========================================
+ 
 
   const generateSummary =
     useCallback(async () => {
@@ -295,9 +295,9 @@ useEffect(() => {
       yearlySavings,
     ]);
 
-  // =========================================
+ 
   // LOADING
-  // =========================================
+ 
 
   if (loading) {
 
@@ -322,9 +322,9 @@ useEffect(() => {
     );
   }
 
-  // =========================================
+  
   // NOT FOUND
-  // =========================================
+
 
   if (notFound) {
 
@@ -337,9 +337,9 @@ useEffect(() => {
     );
   }
 
-  // =========================================
+
   // MAIN UI
-  // =========================================
+ 
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">

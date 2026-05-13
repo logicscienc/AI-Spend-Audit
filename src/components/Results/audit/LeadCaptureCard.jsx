@@ -104,18 +104,21 @@ if (submitted) {
             placeholder: "Company (optional)",
             value: company,
             set: setCompany,
+             required: true,
           },
           {
             type: "text",
             placeholder: "Role (optional)",
             value: role,
             set: setRole,
+             required: true,
           },
           {
             type: "number",
             placeholder: "Team size (optional)",
             value: teamSize,
             set: setTeamSize,
+             required: true,
           },
         ].map((field, i) => (
           <input

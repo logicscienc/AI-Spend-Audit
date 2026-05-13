@@ -64,7 +64,7 @@ const SavingsBreakdownSection = ({
 
       </div>
 
-      {/* CHART PLACEHOLDER */}
+     
      {/* CHART SECTION */}
 <div
   className="

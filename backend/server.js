@@ -11,7 +11,7 @@ dotenv.config();
 const app = express();
 
 
-// MIDDLEWARE
+
 
 app.use(cors());
 app.use(express.json());
@@ -27,23 +27,16 @@ const limiter = rateLimit({
 
 app.use(limiter);
 
-// --------------------
-// ROUTES
-// --------------------
-// IMPORTANT: this prefix decides your frontend URL
+
 app.use("/api/audit", auditRoutes);
 
 
-// --------------------
-// TEST ROUTE
-// --------------------
+
 app.get("/", (req, res) => {
   res.send("Backend is running ");
 });
 
-// --------------------
-// START SERVER
-// --------------------
+
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {

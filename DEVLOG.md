@@ -248,3 +248,122 @@ UI design: starting phase
 - Charts: working + polished basic version
 - Recommendations system: functional
 - Next focus: UX polish + export features + final UI refinement
+
+
+
+# Day 6 — 2026-05-12
+
+## What I Did Today
+
+- Debugged the audit results flow between frontend and backend.
+- Fixed the `handleSubmit` navigation state structure issue.
+- Identified that `results` was being passed as a nested object instead of a direct array.
+
+### Corrected the data flow from:
+
+```js
+results: data.results
+```
+
+### to:
+
+```js
+results: data.results.results
+```
+
+- Fixed UI rendering issues across:
+  - Savings cards
+  - Recommendations table
+  - Charts
+  - Per-tool audit results
+  - Total savings calculations
+
+- Added defensive fallbacks for:
+  - `totalMonthlySavings`
+  - `yearlySavings`
+  - `rawEntries`
+  - `toolResults`
+
+- Debugged Recharts rendering warnings related to invalid chart dimensions.
+- Verified audit data flow using:
+  - `console.log`
+  - React Router `location.state`
+- Cleaned up results handling logic in `Results.jsx`.
+
+---
+
+## What I Learned
+
+- Importance of maintaining a consistent API response shape between backend and frontend.
+- How nested state structures can silently break React rendering.
+- Better debugging practices using:
+  - `console.log`
+  - React Router `location.state`
+  - component-level data validation
+- Why array methods like `.reduce()` fail when objects are accidentally passed instead of arrays.
+- How Recharts depends on valid parent container dimensions to render properly.
+
+---
+
+## Blockers / Issues I Faced
+
+- Audit UI showed `$0/month` savings even though backend calculations were correct.
+- Recommendations and charts rendered empty.
+
+### Encountered:
+
+```txt
+results.reduce is not a function
+```
+
+### Recharts warning:
+
+```txt
+width(-1) and height(-1) should be greater than 0
+```
+
+### Confusion caused by nested response structure:
+
+```js
+{
+  results: {
+    results: [...]
+  }
+}
+```
+
+---
+
+## How I Resolved Them
+
+- Traced the issue through the entire submission flow:
+  - `handleSubmit`
+  - `navigate()`
+  - `location.state`
+  - `Results.jsx`
+
+- Used console logging to inspect actual runtime data.
+- Fixed the navigation payload structure.
+- Ensured all result-based components receive a proper array.
+- Added safe defaults and guards to prevent undefined state issues.
+- Verified backend response and frontend rendering alignment.
+
+---
+
+## Plan for Tomorrow
+
+- Improve audit result UI polish and responsiveness.
+- Add loading states and animations for charts/cards.
+- Implement better error handling for failed API requests.
+- Start refining recommendation scoring logic.
+- Prepare audit history persistence improvements.
+
+---
+
+## Current Status
+
+- Audit engine working correctly.
+- Backend summary generation functioning properly.
+- Results page fully rendering real audit data again.
+- Savings calculations and recommendations restored.
+- Main frontend-backend integration bug resolved successfully.

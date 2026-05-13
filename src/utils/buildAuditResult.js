@@ -11,6 +11,7 @@ export function buildAuditResult({
   reason,
   seats,
   useCase,
+  pricingSource,
 }) {
   return {
     tool,
@@ -34,5 +35,6 @@ export function buildAuditResult({
 
     seats,
     useCase,
+    pricingSource,
   };
 }

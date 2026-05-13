@@ -21,6 +21,7 @@ import UserInputsSection from "../components/Results/audit/UserInputsSection";
 import SavingsBreakdownSection from "../components/Results/charts/SavingsBreakdownSection";
 import RecommendationsSection from "../components/Results/audit/RecommendationsSection";
 import LeadCaptureCard from "../components/Results/audit/LeadCaptureCard";
+import {API} from "../config/api";
 
 const Results = () => {
 
@@ -167,7 +168,7 @@ useEffect(() => {
         // -----------------------
 
         const res = await fetch(
-          `http://localhost:5000/api/audit/audit/${id}`
+          API.AUDIT_BY_ID(id)
         );
 
         const data = await res.json();
@@ -253,7 +254,7 @@ useEffect(() => {
 
         const response =
           await fetch(
-            "http://localhost:5000/api/audit/generate-summary",
+            API.GENERATE_SUMMARY,
             {
               method: "POST",
 
@@ -343,7 +344,7 @@ useEffect(() => {
   return (
     <div className="min-h-screen bg-[#030712] text-white">
 
-      <Navbar />
+      {/* <Navbar /> */}
 
       <Topbar auditId={id} />
 

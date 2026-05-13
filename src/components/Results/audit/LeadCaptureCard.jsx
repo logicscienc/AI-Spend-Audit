@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-
+import toast from "react-hot-toast";
+import {API} from "../../../config/api";
 const LeadCaptureCard = ({ totalMonthlySavings }) => {
   const [email, setEmail] = useState("");
   const [company, setCompany] = useState("");
@@ -11,127 +12,178 @@ const LeadCaptureCard = ({ totalMonthlySavings }) => {
 
   const isHighSavings = totalMonthlySavings >= 500;
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+const handleSubmit = async (e) => {
+  e.preventDefault();
 
-    try {
-      setLoading(true);
+  try {
+    setLoading(true);
 
-      await fetch("http://localhost:5000/api/audit/lead", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          email,
-          company,
-          role,
-          teamSize,
-          website,
-          totalMonthlySavings,
-        }),
-      });
+   await fetch(API.AUDIT_LEAD, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        company,
+        role,
+        teamSize,
+        website,
+        totalMonthlySavings,
+      }),
+    });
 
-      setSubmitted(true);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  };
+    toast.success("Lead submitted successfully 🎉");
 
-  if (submitted) {
-    return (
-      <div className="rounded-2xl border border-green-500/20 bg-green-500/10 p-6">
-        <h2 className="text-2xl font-semibold mb-2">
-          Audit Saved Successfully
-        </h2>
-
-        <p className="text-gray-300">
-          We'll notify you when new optimization opportunities are available.
-        </p>
-      </div>
-    );
+    setSubmitted(true);
+  } catch (err) {
+    toast.error("Something went wrong!");
+    console.log(err);
+  } finally {
+    setLoading(false);
   }
+};
+
+if (submitted) {
+  return (
+    <div className="mx-auto w-full max-w-lg rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6 text-center">
+
+      {/* CHECK ICON ANIMATION */}
+      <div className="flex justify-center mb-4">
+        <div className="h-14 w-14 rounded-full bg-emerald-500/20 flex items-center justify-center animate-pulse">
+          <svg
+            className="w-7 h-7 text-emerald-300"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="3"
+            viewBox="0 0 24 24"
+          >
+            <path d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+      </div>
+
+      <h2 className="text-xl font-semibold text-white mb-2">
+        Audit Saved Successfully
+      </h2>
+
+      <p className="text-gray-300 text-sm">
+        We'll notify you when new optimization opportunities are available.
+      </p>
+    </div>
+  );
+}
 
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/5 p-6">
+   <div className="mx-auto w-full max-w-lg rounded-2xl border border-white/10 bg-white/[0.03] p-6">
 
-      <h2 className="text-2xl font-semibold mb-2">
+      {/* HEADER */}
+      <h2 className="text-xl font-semibold text-white mb-2">
         {isHighSavings
           ? "Unlock More Savings With Credex"
           : "Stay Updated On New Savings"}
       </h2>
 
-      <p className="text-gray-400 mb-6">
+      <p className="text-sm text-gray-400 mb-6">
         {isHighSavings
-          ? "Your audit shows significant savings potential. Credex can help reduce your AI infrastructure costs even further."
-          : "You're already spending efficiently. We'll notify you if better optimization opportunities appear."}
+          ? "Your audit shows significant savings potential. Credex can help reduce your AI costs further."
+          : "We'll notify you if better optimization opportunities appear."}
       </p>
 
       <form onSubmit={handleSubmit} className="space-y-4">
 
-        <input
-          type="email"
-          required
-          placeholder="Work email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none"
-        />
+        {/* INPUTS */}
+        {[
+          {
+            type: "email",
+            placeholder: "Work email",
+            value: email,
+            set: setEmail,
+            required: true,
+          },
+          {
+            type: "text",
+            placeholder: "Company (optional)",
+            value: company,
+            set: setCompany,
+          },
+          {
+            type: "text",
+            placeholder: "Role (optional)",
+            value: role,
+            set: setRole,
+          },
+          {
+            type: "number",
+            placeholder: "Team size (optional)",
+            value: teamSize,
+            set: setTeamSize,
+          },
+        ].map((field, i) => (
+          <input
+            key={i}
+            type={field.type}
+            required={field.required}
+            placeholder={field.placeholder}
+            value={field.value}
+            onChange={(e) => field.set(e.target.value)}
+            className="
+              w-full
+              rounded-xl
+              bg-white/5
+              border border-white/10
+              px-4 py-3
+              text-sm text-white
+              placeholder-gray-500
+              outline-none
+              focus:border-cyan-300/40
+              focus:ring-2 focus:ring-cyan-300/10
+              transition
+            "
+          />
+        ))}
 
+        {/* HIDDEN FIELD */}
         <input
           type="text"
-          placeholder="Company (optional)"
-          value={company}
-          onChange={(e) => setCompany(e.target.value)}
-          className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none"
+          value={website}
+          onChange={(e) => setWebsite(e.target.value)}
+          className="hidden"
+          tabIndex="-1"
+          autoComplete="off"
         />
 
-        <input
-          type="text"
-          placeholder="Role (optional)"
-          value={role}
-          onChange={(e) => setRole(e.target.value)}
-          className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none"
-        />
+        {/* BUTTON (UPDATED STYLE) */}
+       <button
+  type="submit"
+  disabled={loading}
+  className={`
+    w-full
+    rounded-xl
+    py-3
+    font-medium
+    transition-all duration-300
+    flex items-center justify-center gap-2
 
-        <input
-          type="number"
-          placeholder="Team size (optional)"
-          value={teamSize}
-          onChange={(e) => setTeamSize(e.target.value)}
-          className="w-full rounded-xl bg-white/5 border border-white/10 px-4 py-3 outline-none"
-        />
+    ${
+      loading
+        ? "bg-white/10 text-gray-400 cursor-not-allowed"
+        : "bg-transparent text-cyan-300 hover:text-white"
+    }
 
-        <input
-  type="text"
-  value={website}
-  onChange={(e) => setWebsite(e.target.value)}
-  className="hidden"
-  tabIndex="-1"
-  autoComplete="off"
-/>
+    border-b-2 border-cyan-300
+    hover:border-cyan-200
+    shadow-[0_0_12px_rgba(34,211,238,0.15)]
+  `}
+>
+  {loading && (
+    <div className="h-4 w-4 border-2 border-cyan-300 border-t-transparent rounded-full animate-spin"></div>
+  )}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="
-            w-full
-            rounded-xl
-            bg-blue-600
-            hover:bg-blue-500
-            transition
-            py-3
-            font-medium
-          "
-        >
-          {loading
-            ? "Saving..."
-            : isHighSavings
-            ? "Book Credex Consultation"
-            : "Notify Me"}
-        </button>
+  {loading
+    ? "Processing..."
+    : isHighSavings
+    ? "Book Credex Consultation"
+    : "Notify Me"}
+</button>
 
       </form>
     </div>

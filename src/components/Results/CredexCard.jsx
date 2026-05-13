@@ -152,6 +152,12 @@ export default function CredexCard({
 
         {/* CTA */}
         <button
+
+        onClick={() => {
+  document.getElementById("lead-capture")?.scrollIntoView({
+    behavior: "smooth",
+  });
+}}
           className="
             mt-7
             flex items-center justify-center gap-2

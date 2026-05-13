@@ -1,6 +1,9 @@
-import React from 'react'
-import { pricingData } from '../data/pricingData'
-import { buildAuditResult } from './buildAuditResult'
+ import React from 'react'
+ import { pricingData } from '../data/pricingData'
+ import { buildAuditResult } from './buildAuditResult'
+ import { pricingTrace } from "../data/pricingTrace";
+
+
 
 
 
@@ -33,6 +36,17 @@ export function auditEngine(userData)
 function getPrice(tool, plan) 
 {
     return pricingData?.[tool]?.plans?.[plan] ?? null
+}
+
+
+
+
+function attachPricingSource(tool, plan) {
+  return (
+    pricingTrace?.[tool]?.plans?.[plan] ||
+    pricingTrace?.[tool]?.source ||
+    null
+  );
 }
 
 
@@ -83,6 +97,10 @@ function evaluateTool(userData) {
   monthlySavings: savings,
 
   annualSavings: savings * 12,
+
+
+  // Added
+    pricingSource: attachPricingSource(tool, plan),
 
   recommendation: "Downgrade to ChatGPT Go",
 
@@ -1149,3 +1167,6 @@ if (
   useCase,
 });
 } 
+
+
+

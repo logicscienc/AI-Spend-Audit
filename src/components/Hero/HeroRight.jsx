@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { auditEngine } from "../../utils/auditEngine";
 import {useNavigate} from "react-router-dom";
+import {API} from "../../config/api";
 
 import {
   ChevronDown,
@@ -103,6 +104,7 @@ export default function HeroRight() {
 
 
   const navigate = useNavigate();
+   const [loading, setLoading] = useState(false);
 
   // -------------------------
   // TOOL ENTRIES
@@ -409,6 +411,8 @@ const handleSubmit = async (e) => {
 
   if (!isValid) return;
 
+  setLoading(true);
+
   // NORMALIZE
   const normalizedEntries = toolEntries.map((entry) => ({
     ...entry,
@@ -446,8 +450,7 @@ const handleSubmit = async (e) => {
   };
 
   try {
-    const response = await fetch(
-      "http://localhost:5000/api/audit/generate-summary",
+    const response = await fetch(API.GENERATE_SUMMARY,
       {
         method: "POST",
 
@@ -460,6 +463,8 @@ const handleSubmit = async (e) => {
     );
 
     const data = await response.json();
+
+    localStorage.removeItem("aiSpendEntries");
 
     const endTime = performance.now();
 
@@ -971,28 +976,22 @@ const handleSubmit = async (e) => {
         </button>
 
         {/* SUBMIT */}
-        <button
+          <button
           type="submit"
-          className="
-            w-full
-            flex items-center justify-center gap-3
-            rounded-2xl
-            py-5
-            text-xl
-            font-semibold
-            bg-gradient-to-r
-            from-blue-600
-            via-blue-500
-            to-purple-600
-            hover:scale-[1.01]
-            transition-all duration-300
-            shadow-[0_0_35px_rgba(59,130,246,0.35)]
-          "
+          disabled={loading}
+          className="w-full py-5 rounded-2xl bg-gradient-to-r from-blue-600 to-purple-600 font-semibold flex justify-center items-center gap-3"
         >
-
-          Get My AI Spend Audit
-
-          <ArrowRight className="w-6 h-6" />
+          {loading ? (
+            <>
+              <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Processing...
+            </>
+          ) : (
+            <>
+              Get My AI Spend Audit
+              <ArrowRight />
+            </>
+          )}
         </button>
 
         {/* FOOTER */}
@@ -1007,4 +1006,4 @@ const handleSubmit = async (e) => {
       </form>
     </div>
   );
-}
+} 

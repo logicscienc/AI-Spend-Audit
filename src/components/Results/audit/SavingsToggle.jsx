@@ -1,62 +1,47 @@
-import React from 'react'
+import React from "react";
 
-const SavingsToggle = ({
-  showAnnual,
-  setShowAnnual,
-}) => {
+const SavingsToggle = ({ showAnnual, setShowAnnual }) => {
   return (
-    <div
-      className="
-        inline-flex
-        items-center
-        rounded-2xl
-        border border-white/10
-        bg-white/5
-        p-1
-      "
-    >
+    <div className="flex items-center gap-3 self-start sm:self-auto">
 
-      {/* MONTHLY */}
-      <button
-        onClick={() =>
-          setShowAnnual(false)
-        }
-        className={`
-          rounded-xl
-          px-4 py-2
-          text-sm font-medium
-          transition-all duration-200
-
-          ${
-            !showAnnual
-              ? "bg-blue-600 text-white"
-              : "text-gray-400 hover:text-white"
-          }
-        `}
-      >
+      {/* LABEL */}
+      <span className="text-xs sm:text-sm text-gray-300">
         Monthly
-      </button>
+      </span>
 
-      {/* ANNUAL */}
+      {/* TOGGLE */}
       <button
-        onClick={() =>
-          setShowAnnual(true)
-        }
+        onClick={() => setShowAnnual(!showAnnual)}
         className={`
-          rounded-xl
-          px-4 py-2
-          text-sm font-medium
-          transition-all duration-200
-
-          ${
-            showAnnual
-              ? "bg-blue-600 text-white"
-              : "text-gray-400 hover:text-white"
+          relative
+          w-14 h-7
+          rounded-full
+          transition-all duration-300
+          ${showAnnual
+            ? "bg-gradient-to-r from-blue-400 via-cyan-300 to-purple-400"
+            : "bg-white/10"
           }
         `}
       >
-        Annual
+        {/* KNOB */}
+        <span
+          className={`
+            absolute top-1 left-1
+            h-5 w-5
+            rounded-full
+            bg-white
+            shadow-md
+            transition-all duration-300
+            ${showAnnual ? "translate-x-7" : "translate-x-0"}
+          `}
+        />
       </button>
+
+      {/* LABEL */}
+      <span className="text-xs sm:text-sm text-gray-300">
+        Annual
+      </span>
+
     </div>
   );
 };

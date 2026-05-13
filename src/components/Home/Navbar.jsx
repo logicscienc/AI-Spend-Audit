@@ -1,8 +1,10 @@
 import React from "react";
 import { HiHome } from "react-icons/hi2";
 import { FiCode } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 
 export default function Navbar() {
+   const navigate = useNavigate();
   return (
     <nav className="w-full border-b border-white/10 text-white">
       <div className="max-w-7xl mx-auto px-6 md:px-10 h-24 flex items-center justify-between">
@@ -40,20 +42,44 @@ export default function Navbar() {
         </div>
 
         {/* RIGHT SIDE */}
-        <button
-          className="
-            flex items-center gap-2
-            px-5 py-3
-            rounded-xl
-            border border-white/10
-            bg-white/5 backdrop-blur-md
-            hover:bg-white/5
-            transition-all duration-300
-          "
-        >
-          <HiHome className="text-lg" />
-          <span className="font-medium">Start Free Audit</span>
-        </button>
+        {/* RIGHT SIDE */}
+<div className="flex items-center gap-3">
+
+  {/* HISTORY BUTTON */}
+  <button
+    onClick={() => navigate("/audit-history")}
+    className="
+      flex items-center gap-2
+      px-5 py-3
+      rounded-xl
+      border border-white/10
+      bg-white/5 backdrop-blur-md
+      hover:bg-white/10
+      transition-all duration-300
+    "
+  >
+    <FiCode className="text-lg" />
+    <span className="font-medium">History</span>
+  </button>
+
+  {/* START AUDIT BUTTON */}
+  <button
+    onClick={() => navigate("/")}
+    className="
+      flex items-center gap-2
+      px-5 py-3
+      rounded-xl
+      border border-white/10
+      bg-white/5 backdrop-blur-md
+      hover:bg-white/10
+      transition-all duration-300
+    "
+  >
+    <HiHome className="text-lg" />
+    <span className="font-medium">Start Free Audit</span>
+  </button>
+
+</div>
       </div>
     </nav>
   );

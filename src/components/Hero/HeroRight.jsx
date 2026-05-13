@@ -400,8 +400,7 @@ function normalizePlan(plan) {
   // SUBMIT
   // -------------------------
 
- const handleSubmit = (e) => {
-
+const handleSubmit = async (e) => {
   e.preventDefault();
 
   const startTime = performance.now();
@@ -410,49 +409,94 @@ function normalizePlan(plan) {
 
   if (!isValid) return;
 
-  const formattedData =
-    toolEntries.map((entry) => ({
+  // NORMALIZE
+  const normalizedEntries = toolEntries.map((entry) => ({
+    ...entry,
 
-     tool: normalizeTool(entry.tool),
+    tool: normalizeTool(entry.tool),
 
-      plan: normalizePlan(entry.plan),
+    plan: normalizePlan(entry.plan),
 
-      seats: Number(entry.seats),
+    seats: Number(entry.seats || 0),
 
-      teamSize: Number(entry.teamSize),
+    teamSize: Number(entry.teamSize || 0),
 
-      monthlySpend: Number(entry.monthlySpend),
+    monthlySpend: Number(entry.monthlySpend || 0),
+  }));
 
-      useCase: entry.useCase,
-    }));
+  // RUN AUDIT ENGINE
+  const auditResults =
+    auditEngine(normalizedEntries);
 
-  const results = auditEngine(formattedData);
+  const totalMonthlySavings =
+    auditResults.totalMonthlySavings || 0;
 
-    console.log("AUDIT RESULTS", results);
+  const yearlySavings =
+    totalMonthlySavings * 12;
+
+  // CORRECT PAYLOAD
+  const payload = {
+    results: auditResults.results,
+
+    rawEntries: toolEntries,
+
+    totalMonthlySavings,
+
+    yearlySavings,
+  };
+
+  try {
+    const response = await fetch(
+      "http://localhost:5000/api/audit/generate-summary",
+      {
+        method: "POST",
+
+        headers: {
+          "Content-Type": "application/json",
+        },
+
+        body: JSON.stringify(payload),
+      }
+    );
+
+    const data = await response.json();
 
     const endTime = performance.now();
 
-const completedIn =
-  ((endTime - startTime) / 1000).toFixed(1);
+    const completedIn = (
+      (endTime - startTime) / 1000
+    ).toFixed(1);
 
-  // DYNAMIC AUDIT ID
-  const auditId =
-    `AUD-${crypto.randomUUID()
-      .slice(0, 8)
-      .toUpperCase()}`;
+    console.log("AUDIT RESPONSE:", data);
 
-  // NAVIGATE TO RESULTS PAGE
-  const payload = {
-  auditId,
-  results,
-  rawEntries: toolEntries,
-  completedIn: `${completedIn}s`,
-  auditDate: new Date().toISOString(),
-};
+    navigate("/results", {
+      state: {
+        auditId: data.auditId,
 
-console.log("🚀 NAVIGATING WITH PAYLOAD:", payload);
+        // IMPORTANT FIX
+        results: {
+          results: data.results,
+        },
 
-navigate("/results", { state: payload });
+        rawEntries: toolEntries,
+
+        totalMonthlySavings:
+          data.totalMonthlySavings,
+
+        yearlySavings:
+          data.yearlySavings,
+
+        completedIn: `${completedIn}s`,
+
+        auditDate: data.auditDate,
+
+        summary: data.summary,
+      },
+    });
+
+  } catch (err) {
+    console.error("Save failed:", err);
+  }
 };
 
   return (

@@ -1,5 +1,14 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
-import { useLocation } from "react-router-dom";
+import React, {
+  useEffect,
+  useState,
+  useCallback,
+} from "react";
+
+import {
+  useLocation,
+  useParams,
+} from "react-router-dom";
+
 import PerToolAuditSection from "../components/Results/audit/PerToolAuditSection";
 import SavingsCard from "../components/Results/SavingsCard";
 import Navbar from "../components/Home/Navbar";
@@ -11,162 +20,428 @@ import ResultsTabs from "../components/Results/layout/ResultsTabs";
 import UserInputsSection from "../components/Results/audit/UserInputsSection";
 import SavingsBreakdownSection from "../components/Results/charts/SavingsBreakdownSection";
 import RecommendationsSection from "../components/Results/audit/RecommendationsSection";
+import LeadCaptureCard from "../components/Results/audit/LeadCaptureCard";
+
 const Results = () => {
+
   const location = useLocation();
 
-  const [summary, setSummary] = useState("");
-  const [loadingSummary, setLoadingSummary] = useState(true);
-  const [activeTab, setActiveTab] = useState("audit-results");
-  const [showAnnual, setShowAnnual] = useState(false);
+  const { id } = useParams();
 
-  const {
-    auditId,
-    results,
-    rawEntries = [],
-    completedIn,
-    auditDate,
-  } = location.state || {};
+  const [summary, setSummary] =
+    useState("");
 
-  // -------------------------
-  // SAFE DATA NORMALIZATION
-  // -------------------------
-  const safeResults = results || {};
-  const toolResults = safeResults.results || [];
+  const [loadingSummary, setLoadingSummary] =
+    useState(false);
 
-  console.log("auditId:", auditId);
-  console.log("results:", results);
-  console.log("rawEntries:", rawEntries);
-  console.log("toolResults:", toolResults);
+  const [activeTab, setActiveTab] =
+    useState("audit-results");
 
-  // -------------------------
-  // MEMOIZED CALCULATIONS (IMPORTANT)
-  // -------------------------
-  const totalMonthlySavings = useMemo(() => {
-    return safeResults.totalMonthlySavings || 0;
-  }, [safeResults]);
+  const [showAnnual, setShowAnnual] =
+    useState(false);
 
-  const yearlySavings = useMemo(() => {
-    return safeResults.totalAnnualSavings || 0;
-  }, [safeResults]);
+  const [loading, setLoading] =
+    useState(false);
 
-  // -------------------------
-  // AI SUMMARY CALL (NO LOOP)
-  // -------------------------
-  const generateSummary = useCallback(async () => {
-    if (!toolResults.length) return;
+  const [notFound, setNotFound] =
+    useState(false);
 
-    setLoadingSummary(true);
+  const [toolResults, setToolResults] =
+    useState([]);
 
-    try {
-      const response = await fetch("http://localhost:5000/generate-summary", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          results: toolResults,
-          rawEntries,
-          totalMonthlySavings,
-          yearlySavings,
-        }),
-      });
+  const [rawEntries, setRawEntries] =
+    useState([]);
 
-      const data = await response.json();
-      setSummary(data.summary || "");
+  const [
+    totalMonthlySavings,
+    setTotalMonthlySavings,
+  ] = useState(0);
 
-    } catch (error) {
-      console.log(error);
-      setSummary("Unable to generate AI summary right now.");
-    } finally {
-      setLoadingSummary(false);
-    }
-  }, [toolResults, rawEntries, totalMonthlySavings, yearlySavings]);
+  const [
+    yearlySavings,
+    setYearlySavings,
+  ] = useState(0);
 
-  // RUN ONCE ONLY
+  const [auditDate, setAuditDate] =
+    useState("");
+
+  // =========================================
+  // SUBMIT FLOW
+  // =========================================
+
+useEffect(() => {
+  if (!id && location.state) {
+
+    console.log("LOCATION STATE:", location.state);
+
+    const {
+      results,
+      rawEntries = [],
+      totalMonthlySavings,
+      yearlySavings,
+      summary,
+      auditDate,
+    } = location.state;
+
+    setToolResults(results?.results || []);
+
+    setRawEntries(rawEntries || []);
+
+    setTotalMonthlySavings(
+      Number(totalMonthlySavings) || 0
+    );
+
+    setYearlySavings(
+      Number(yearlySavings) || 0
+    );
+
+    setSummary(summary || "");
+
+    setAuditDate(auditDate || "");
+  }
+}, [id, location.state]);
+
+  // =========================================
+  // HISTORY FLOW
+  // =========================================
+
   useEffect(() => {
-    generateSummary();
-  }, []);
+
+    if (!id) return;
+
+    const fetchAudit = async () => {
+
+      try {
+
+        setLoading(true);
+
+        setNotFound(false);
+
+        // -----------------------
+        // CACHE
+        // -----------------------
+
+        const cachedAudit =
+          sessionStorage.getItem(
+            `audit-${id}`
+          );
+
+        if (cachedAudit) {
+
+          const audit =
+            JSON.parse(cachedAudit);
+
+          setToolResults(
+            Array.isArray(audit.results)
+              ? audit.results
+              : []
+          );
+
+          setRawEntries(
+            audit.raw_entries || []
+          );
+
+          setSummary(
+            audit.summary || ""
+          );
+
+          setTotalMonthlySavings(
+            audit.total_monthly_savings || 0
+          );
+
+          setYearlySavings(
+            audit.yearly_savings || 0
+          );
+
+          setAuditDate(
+            audit.created_at || ""
+          );
+
+          setLoading(false);
+
+          return;
+        }
+
+        // -----------------------
+        // FETCH BACKEND
+        // -----------------------
+
+        const res = await fetch(
+          `http://localhost:5000/api/audit/audit/${id}`
+        );
+
+        const data = await res.json();
+
+        if (
+          !data.success ||
+          !data.audit
+        ) {
+          setNotFound(true);
+          return;
+        }
+
+        const audit = data.audit;
+
+        // -----------------------
+        // SAVE CACHE
+        // -----------------------
+
+        sessionStorage.setItem(
+          `audit-${id}`,
+          JSON.stringify(audit)
+        );
+
+        // -----------------------
+        // SET STATE
+        // -----------------------
+
+        setToolResults(
+          Array.isArray(audit.results)
+            ? audit.results
+            : []
+        );
+
+        setRawEntries(
+          audit.raw_entries || []
+        );
+
+        setSummary(
+          audit.summary || ""
+        );
+
+        setTotalMonthlySavings(
+          audit.total_monthly_savings || 0
+        );
+
+        setYearlySavings(
+          audit.yearly_savings || 0
+        );
+
+        setAuditDate(
+          audit.created_at || ""
+        );
+
+      } catch (err) {
+
+        console.log(err);
+
+        setNotFound(true);
+
+      } finally {
+
+        setLoading(false);
+      }
+    };
+
+    fetchAudit();
+
+  }, [id]);
+
+  // =========================================
+  // GENERATE SUMMARY
+  // =========================================
+
+  const generateSummary =
+    useCallback(async () => {
+
+      if (!toolResults.length)
+        return;
+
+      setLoadingSummary(true);
+
+      try {
+
+        const response =
+          await fetch(
+            "http://localhost:5000/api/audit/generate-summary",
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/json",
+              },
+
+              body: JSON.stringify({
+                results: toolResults,
+                rawEntries,
+                totalMonthlySavings,
+                yearlySavings,
+              }),
+            }
+          );
+
+        const data =
+          await response.json();
+
+        setSummary(
+          data.summary || ""
+        );
+
+      } catch (error) {
+
+        console.log(error);
+
+      } finally {
+
+        setLoadingSummary(false);
+      }
+
+    }, [
+      toolResults,
+      rawEntries,
+      totalMonthlySavings,
+      yearlySavings,
+    ]);
+
+  // =========================================
+  // LOADING
+  // =========================================
+
+  if (loading) {
+
+    return (
+      <div className="min-h-screen bg-[#030712] text-white p-6">
+
+        <div className="max-w-7xl mx-auto">
+
+          <div className="animate-pulse grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <div className="h-48 rounded-2xl bg-white/5" />
+
+            <div className="h-48 rounded-2xl bg-white/5" />
+
+            <div className="h-64 rounded-2xl bg-white/5 lg:col-span-2" />
+
+          </div>
+
+        </div>
+
+      </div>
+    );
+  }
+
+  // =========================================
+  // NOT FOUND
+  // =========================================
+
+  if (notFound) {
+
+    return (
+      <div className="min-h-screen bg-[#030712] text-white flex items-center justify-center">
+
+        Audit Not Found
+
+      </div>
+    );
+  }
+
+  // =========================================
+  // MAIN UI
+  // =========================================
 
   return (
     <div className="min-h-screen bg-[#030712] text-white">
 
       <Navbar />
 
-      <Topbar auditId={auditId} />
+      <Topbar auditId={id} />
 
       <div className="max-w-7xl mx-auto px-6 py-8">
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
-          {/* HERO */}
           <AuditHeroCard
-            totalTools={rawEntries?.length || 0}
-            completedIn={completedIn}
+            totalTools={rawEntries.length}
             auditDate={auditDate}
           />
 
-          {/* SAVINGS */}
           <SavingsCard
             results={toolResults}
             rawEntries={rawEntries}
           />
 
-          {/* SUMMARY */}
           <AISummaryCard
             summary={summary}
             loading={loadingSummary}
             onRegenerate={generateSummary}
           />
 
-          {/* TOTAL SAVINGS */}
-          <CredexCard totalMonthlySavings={totalMonthlySavings} />
+          <CredexCard
+            totalMonthlySavings={
+              totalMonthlySavings
+            }
+          />
 
         </div>
 
-        {/* TABS */}
-<div className="mt-10">
-  <ResultsTabs 
-    activeTab={activeTab}
-    setActiveTab={setActiveTab}
-  />
-</div>
+        <div className="mt-10">
 
-         {/* ADD THIS HERE */}
-  {/* TAB CONTENT */}
-<div className="mt-8">
+          <ResultsTabs
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
 
-  {activeTab === "audit-results" && (
-    <PerToolAuditSection
-      toolResults={toolResults}
-    />
-  )}
+        </div>
 
-   {activeTab === "your-inputs" && (
-    <UserInputsSection
-      rawEntries={rawEntries}
-    />
-  )}
+        <div className="mt-8">
 
-    {activeTab === "recommendations" && (
-    <RecommendationsSection
-      toolResults={toolResults}
-        showAnnual={showAnnual}
-        setShowAnnual={setShowAnnual}
-    />
-  )}
+          {activeTab ===
+            "audit-results" && (
+            <PerToolAuditSection
+              toolResults={toolResults}
+            />
+          )}
 
-   {activeTab === "savings-breakdown" && (
-    <SavingsBreakdownSection
-      toolResults={toolResults}
-      totalMonthlySavings={totalMonthlySavings}
-      yearlySavings={yearlySavings}
-        showAnnual={showAnnual}
-  setShowAnnual={setShowAnnual}
-    />
-  )}
+          {activeTab ===
+            "your-inputs" && (
+            <UserInputsSection
+              rawEntries={rawEntries}
+            />
+          )}
 
-</div>
+          {activeTab ===
+            "recommendations" && (
+            <RecommendationsSection
+              toolResults={toolResults}
+              showAnnual={showAnnual}
+              setShowAnnual={
+                setShowAnnual
+              }
+            />
+          )}
+
+          {activeTab ===
+            "savings-breakdown" && (
+            <SavingsBreakdownSection
+              toolResults={toolResults}
+              totalMonthlySavings={
+                totalMonthlySavings
+              }
+              yearlySavings={
+                yearlySavings
+              }
+              showAnnual={showAnnual}
+              setShowAnnual={
+                setShowAnnual
+              }
+            />
+          )}
+
+        </div>
+
+        <div className="mt-12">
+
+          <LeadCaptureCard
+            totalMonthlySavings={
+              totalMonthlySavings
+            }
+          />
+
+        </div>
+
       </div>
+
     </div>
   );
 };

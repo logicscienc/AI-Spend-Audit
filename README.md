@@ -12,22 +12,27 @@ Frontend: https://ai-spend-audit-lilac.vercel.app/
 
 ---
 
-# Screenshots
+## Screenshots
 
-## Home Page
-(Add screenshot here)
+### Home Page
 
-## Audit Results Dashboard
-(Add screenshot here)
-
-## Lead Capture + Recommendations
-(Add screenshot here)
+![Home Page](./screenshots/home-page.png)
 
 ---
 
+### Audit Results Dashboard
+
+![Audit Results](./screenshots/audit-results.png)
+
+---
+
+### Lead Capture + Recommendations
+
+![Lead Capture](./screenshots/lead-capture.png)
+
 # Demo Video
 
-(Add Loom or YouTube link here if available)
+https://www.loom.com/share/4d478e55df6a4b798d05fafb60b8e8af
 
 ---
 

@@ -1,16 +1,241 @@
-# React + Vite
+# AI Spend Audit Engine
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AI Spend Audit Engine is a full-stack web application that helps startups and small teams identify unnecessary AI subscription costs across tools like ChatGPT, Claude, Cursor, Gemini, GitHub Copilot, and Windsurf.
 
-Currently, two official plugins are available:
+Users can enter their current AI stack, monthly spend, seats, and use cases to instantly receive optimization recommendations, projected monthly/annual savings, and AI-generated audit summaries. The project is designed as both a cost-optimization tool and a lead-generation product for Credex.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+---
 
-## React Compiler
+# Live Demo
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Frontend: https://ai-spend-audit-lilac.vercel.app/
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+# Screenshots
+
+## Home Page
+(Add screenshot here)
+
+## Audit Results Dashboard
+(Add screenshot here)
+
+## Lead Capture + Recommendations
+(Add screenshot here)
+
+---
+
+# Demo Video
+
+(Add Loom or YouTube link here if available)
+
+---
+
+# Features
+
+- Multi-tool AI spend audit system
+- Per-tool optimization recommendations
+- Monthly + annual savings calculations
+- AI-generated personalized audit summary
+- Lead capture with backend storage
+- Shareable audit result pages
+- Pricing traceability system
+- Persistent form state
+- Automated audit engine tests with Jest
+- CI workflow using GitHub Actions
+
+---
+
+# Supported Tools
+
+- ChatGPT
+- Claude
+- GitHub Copilot
+- Cursor
+- Gemini
+- Windsurf
+- OpenAI API
+- Anthropic API
+
+---
+
+# Tech Stack
+
+## Frontend
+- React
+- Vite
+- TailwindCSS
+
+## Backend
+- Node.js
+- Express
+
+## Database / Services
+- Supabase
+- Resend API
+
+## Testing
+- Jest
+- GitHub Actions CI
+
+---
+
+# Quick Start
+
+## 1. Clone Repository
+
+```bash
+git clone https://github.com/logicscienc/AI-Spend-Audit.git
+cd AI-Spend-Audit
+```
+
+---
+
+## 2. Install Frontend Dependencies
+
+```bash
+npm install
+```
+
+---
+
+## 3. Install Backend Dependencies
+
+```bash
+cd backend
+npm install
+```
+
+---
+
+## 4. Setup Environment Variables
+
+Create `.env` files for frontend and backend.
+
+### Frontend `.env`
+
+```env
+VITE_API_BASE=https://ai-spend-audit-zbxt.onrender.com/api
+```
+
+### Backend `.env`
+
+```env
+SUPABASE_URL=your_url
+SUPABASE_ANON_KEY=your_key
+OPENAI_API_KEY=your_key
+RESEND_API_KEY=your_key
+```
+
+---
+
+## 5. Run Frontend
+
+```bash
+npm run dev
+```
+
+---
+
+## 6. Run Backend
+
+```bash
+cd backend
+npm run dev
+```
+
+---
+
+# Deployment
+
+## Frontend
+Deployed on Vercel.
+
+## Backend
+Deployed on Render.
+
+---
+
+# Automated Tests
+
+Run tests using:
+
+```bash
+npm test
+```
+
+Tests cover:
+- Plan downgrade recommendations
+- Upgrade recommendations
+- Efficient spend detection
+- Audit engine recommendation logic
+
+---
+
+# Decisions / Trade-offs
+
+## 1. Hardcoded Audit Logic Instead of AI-Based Cost Decisions
+I intentionally used deterministic rule-based logic for pricing recommendations because financial recommendations need predictability and explainability.
+
+## 2. Vite Instead of Next.js
+I chose Vite for faster local development speed and simpler frontend deployment.
+
+## 3. Separate Backend Deployment
+The backend was deployed separately on Render to isolate API logic, email handling, and database operations from the frontend.
+
+## 4. Minimal Authentication
+The app does not require login before generating an audit to reduce friction and improve conversion rates.
+
+## 5. Fallback AI Summary Handling
+The AI-generated summary includes graceful fallback behavior when the LLM API fails, ensuring the audit result page still works reliably.
+
+---
+
+# Architecture
+
+Detailed architecture documentation is available in:
+
+```bash
+ARCHITECTURE.md
+```
+
+---
+
+# Pricing Sources
+
+All pricing references are documented in:
+
+```bash
+PRICING_DATA.md
+```
+
+---
+
+# Tests Documentation
+
+Detailed testing documentation is available in:
+
+```bash
+TESTS.md
+```
+
+---
+
+# CI/CD
+
+GitHub Actions automatically runs tests on every push to `main`.
+
+Workflow file:
+
+```bash
+.github/workflows/ci.yml
+```
+
+---
+
+# Author
+
+Anju Kumari
+
+GitHub: https://github.com/logicscienc
+LinkedIn: https://www.linkedin.com/in/anjuusingh

@@ -127,22 +127,28 @@ const yearlySavings =
           {/* MONTH */}
           <h2 className="text-5xl font-semibold tracking-tight">
 
-            ${totalMonthlySavings}
+  ${Number(totalMonthlySavings).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
 
-            <span className="text-xl text-white/50 ml-2">
-              /month
-            </span>
-          </h2>
+  <span className="text-xl text-white/50 ml-2">
+    /month
+  </span>
+</h2>
 
           {/* YEAR */}
-          <p className="mt-4 text-lg text-green-400 font-medium">
+         <p className="mt-4 text-lg text-green-400 font-medium">
 
-            ${yearlySavings.toLocaleString()}
+  ${Number(yearlySavings).toLocaleString(undefined, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}
 
-            <span className="text-white/50 font-normal">
-              {" "}saved yearly
-            </span>
-          </p>
+  <span className="text-white/50 font-normal">
+    {" "}saved yearly
+  </span>
+</p>
         </div>
 
         {/* ICON */}
